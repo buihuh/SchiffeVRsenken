@@ -6,7 +6,15 @@
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-    <script src="https://unpkg.com/three@0.146.0/build/three.js"></script>
-    <script src="js/main.js" type="module"></script>
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.146.0/build/three.module.js"
+        }
+    }
+
+</script>
+<!--<script src="https://unpkg.com/three@0.146.0/build/three.js"></script>-->
+<script src="js/main.js" type="module"></script>
 </body>
 </html>

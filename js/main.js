@@ -1,11 +1,13 @@
 import {VRButton} from 'https://unpkg.com/three@0.146.0//examples/jsm/webxr/VRButton.js';
+import {XRControllerModelFactory} from 'https://unpkg.com/three@0.146.0//examples/jsm/webxr/XRControllerModelFactory';
+import * as THREE from 'three';
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = 3;
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setClearColor("#e5e5e5");
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -13,10 +15,11 @@ document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
 
 renderer.xr.enabled = true;
+let vrControllers = null;
 
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.aspect = window.innerWidth / window.innerHeight;
 
     camera.updateProjectionMatrix();
 })
@@ -33,13 +36,110 @@ light.position.set(10, 10, 25);
 
 scene.add(light);
 
-//VR
-renderer.setAnimationLoop(function(){
-    renderer.render(scene, camera);
+
+//VR-Controllers
+function buildControllers() {
+    const controllerModelFactory = new XRControllerModelFactory();
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -1)
+    ]);
+
+    const line = new THREE.Line(geometry);
+    line.scale.z = 10;
+
+    const controllers = [];
+
+    for (let i = 0; i < 2; i++) {
+        const controller = renderer.xr.getController(i);
+        controller.add(line.clone());
+        controller.userData.selectPressed = false;
+        controller.userData.selectPressedPrev = false;
+        scene.add(controller);
+        controllers.push(controller);
+
+        const grip = renderer.xr.getControllerGrip(i);
+        grip.add(controllerModelFactory.createControllerModel(grip));
+        scene.add(grip);
+    }
+    return controllers;
+}
+
+function initVRControllers() {
+    vrControllers = buildControllers();
+
+    //The this-keyword in the following functions refers to the controller
+    function onSelectStart() {
+        this.children[0].scale.z = 10;
+        this.userData.selectPressed = true;
+    }
+
+    function onSelectEnd() {
+        this.children[0].scale.z = 0;
+        this.userData.selectPressed = false;
+    }
+
+    vrControllers.forEach(controller => {
+        controller.addEventListener('selectstart', onSelectStart);
+        controller.addEventListener('selectend', onSelectEnd);
+    });
+}
+
+let selectedObject = null;
+let selectedObjectDistance = null;
+
+function handleController(controller) {
+    if (controller.userData.selectPressed) {
+        if (!controller.userData.selectPressedPrev) {
+            //Select is pressed
+            controller.children[0].scale.z = 10;
+            const rotationMatrix = new THREE.Matrix4();
+            rotationMatrix.extractRotation(controller.matrixWorld);
+            const raycaster = new THREE.Raycaster();
+            raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+            raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
+            const intersects = raycaster.intersectObjects(scene.children);
+            if (intersects.length > 0) {
+                controller.children[0].scale.z = intersects[0].distance;
+                selectedObject = intersects[0].object;
+                selectedObject.material.color = 0xFF0000;
+                selectedObjectDistance = selectedObject.position.distance;
+            }
+        } else if (selectedObject) {
+            //Select is held => Drag the cube around
+            const moveVector = controller.getWorldDirection(new THREE.Vector3())
+                .multiplyScalar(selectedObjectDistance).negate();
+            selectedObject.position.copy(controller.position.clone().add(moveVector));
+        }
+    } else if (controller.userData.selectPressedPrev) {
+        //Select is released
+        controller.children[0].scale.z = 10;
+        if (selectedObject != null) {
+            selectedObject.material.color = 0xFFCC00;
+            selectedObject = null;
+        }
+    }
+    controller.userData.selectPressedPrev = controller.userData.selectPressed;
+}
+
+initVRControllers();
+
+//VR animation loop
+renderer.setAnimationLoop(function () {
+    //Handle Controllers
+    if (vrControllers) {
+        vrControllers.forEach(controller => {
+            handleController(controller);
+        })
+    }
+
+
+    //Cube rotation
     mesh.rotation.y += 0.01;
+    renderer.render(scene, camera);
 })
-//Browser
-const render = function() {
+//Browser animation loop
+const render = function () {
     requestAnimationFrame(render);
 
     mesh.rotation.y += 0.01;
