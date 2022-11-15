@@ -1,6 +1,12 @@
-# SchiffeVRsenken
+# SchiffeVRsenken 🚤
 WebXR project for HBRS module 'Web Engineering'
 
+## Setup
+
+- Install WebXR API Emulator in your Chrome browser
+```
+https://chrome.google.com/webstore/detail/webxr-api-emulator/mjddjgeghkdijejnciaefnkjmkafnnje/related?hl=de 
+```
 ## How to test on Quest 2
 - Enable developer mode: https://learn.adafruit.com/sideloading-on-oculus-quest/enable-developer-mode
 - Accept the dialog popping up when connected to the PC
