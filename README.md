@@ -1,5 +1,5 @@
 # SchiffeVRsenken 🚤
-WebXR project for HBRS module 'Web Engineering'
+WebXR project for HBRS module 'Web Engineering' Bla
 
 ## Setup
 
