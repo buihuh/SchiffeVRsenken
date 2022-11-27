@@ -58,6 +58,8 @@ function buildControllers() {
         controller.add(line.clone());
         controller.userData.selectPressed = false;
         controller.userData.selectPressedPrev = false;
+        controller.userData.squeezePressed = false;
+        controller.userData.squeezePressedPrev = false;
         controller.userData.isActiveController = false;
         scene.add(controller);
         controllers.push(controller);
@@ -82,9 +84,20 @@ function initVRControllers() {
         this.userData.selectPressed = false;
     }
 
+    function onSqueezeStart() {
+        this.userData.squeezePressed = true;
+        // setActiveController(this);
+    }
+
+    function onSqueezeEnd() {
+        this.userData.squeezePressed = false;
+    }
+
     vrControllers.forEach(controller => {
         controller.addEventListener('selectstart', onSelectStart);
         controller.addEventListener('selectend', onSelectEnd);
+        controller.addEventListener('squeezestart', onSqueezeStart);
+        controller.addEventListener('squeezeend', onSqueezeEnd);
     });
 }
 
@@ -122,13 +135,14 @@ function handleController(controller) {
         }
     } else {
         controller.children[0].scale.z = 10;
-        if (selectedObject != null) {
+        if (selectedObject) {
             selectedObject.material.color = new THREE.Color(255, 0, 0);
             selectedObject = null;
         }
     }
+    //SelectButton
     if (controller.userData.selectPressed) {
-        if (!controller.userData.selectPressedPrev && selectedObject != null) {
+        if (!controller.userData.selectPressedPrev && selectedObject && !interacting) {
             //Select is pressed
             selectedObject.material.color = new THREE.Color(0, 255, 0);
             interacting = true;
@@ -140,10 +154,21 @@ function handleController(controller) {
         }*/
     } else if (controller.userData.selectPressedPrev) {
         //Select is released
-        controller.children[0].scale.z = 10;
         interacting = false;
     }
     controller.userData.selectPressedPrev = controller.userData.selectPressed;
+    //SqueezeButton
+    if (controller.userData.squeezePressed) {
+        if (!controller.userData.squeezePressedPrev && selectedObject && !interacting) {
+            //Squeeze is pressed
+            selectedObject.material.color = new THREE.Color(0, 0, 255);
+            interacting = true;
+        }
+    } else if (controller.userData.squeezePressedPrev) {
+        //Squeeze is released
+        interacting = false;
+    }
+    controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
 
 initVRControllers();
