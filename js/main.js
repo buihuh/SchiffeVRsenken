@@ -1,5 +1,5 @@
-import {VRButton} from 'https://unpkg.com/three@0.146.0//examples/jsm/webxr/VRButton.js';
-import {XRControllerModelFactory} from 'https://unpkg.com/three@0.146.0//examples/jsm/webxr/XRControllerModelFactory';
+import {VRButton} from 'three/examples/jsm/webxr/VRButton';
+import {XRControllerModelFactory} from 'three/examples/jsm/webxr/XRControllerModelFactory';
 import * as THREE from 'three';
 
 const scene = new THREE.Scene();
