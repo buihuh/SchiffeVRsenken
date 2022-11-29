@@ -2,6 +2,14 @@
 
 WebXR project for HBRS module **_Web Engineering_**.
 
+## Install dependencies
+
+Install dependencies:
+
+```
+npm install
+```
+
 ## Setup: Browser
 
 - Install WebXR API Emulator in your Chrome browser:
@@ -47,3 +55,4 @@ http://localhost:63342/SchiffeVRsenken/index.html
 ```
 
 The URL may differ according to your folder structure.
+
