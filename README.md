@@ -18,7 +18,7 @@ contact the admin for more information.
 
 ### Setup: Browser
 
-- Install WebXR API Emulator in your Chrome browser:
+Install WebXR API Emulator in your Chrome browser:
 
 ```
 https://chrome.google.com/webstore/detail/webxr-api-emulator/mjddjgeghkdijejnciaefnkjmkafnnje
@@ -39,7 +39,7 @@ https://learn.adafruit.com/sideloading-on-oculus-quest/enable-developer-mode
 https://developer.android.com/studio/releases/platform-tools
 ```
 
-Optional: Put the downloaded files into the folder [ext](./ext) for an easier access.
+Optional: Put the downloaded files into the folder [./ext](./ext) for an easier access.
 
 4. If the Quest is properly connected, it should show in:
 
@@ -57,7 +57,7 @@ Optional: Put the downloaded files into the folder [ext](./ext) for an easier ac
 7. Open your Oculus browser and go to:
 
 ```
-http://localhost:63342/SchiffeVRsenken/index.html
+http://localhost:63342/SchiffeVRsenken
 ```
 
 The URL may differ according to your folder structure.
