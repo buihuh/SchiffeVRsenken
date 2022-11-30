@@ -2,15 +2,21 @@
 
 WebXR project for HBRS module **_Web Engineering_**.
 
-## Install dependencies
+## Getting started
 
-Install dependencies:
+Install [Node.js](https://nodejs.org/en/download/) and run:
 
-```
+```bash
 npm install
 ```
 
-## Setup: Browser
+### Setup: Firebase
+
+For security reasons the config file for Firebase is excluded and needed to be added manually. Therefore, please add the
+file `firebase-config.js` in the folder [./js/firebase/firebase-config.js](./js/firebase). Please
+contact the admin for more information.
+
+### Setup: Browser
 
 - Install WebXR API Emulator in your Chrome browser:
 
@@ -18,7 +24,7 @@ npm install
 https://chrome.google.com/webstore/detail/webxr-api-emulator/mjddjgeghkdijejnciaefnkjmkafnnje
 ```
 
-## Setup: Oculus Quest 2
+### Setup: Oculus Quest 2
 
 1. Enable developer mode:
 
