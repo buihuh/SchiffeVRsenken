@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>SchiffeVRsenken</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link href="css/main.css" rel="stylesheet">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="manifest" href="images/site.webmanifest">
 </head>
 <body>
 <script type="importmap">
     {
         "imports": {
             "three": "https://unpkg.com/three@0.146.0/build/three.module.js",
-            "three/": "https://unpkg.com/three@0.146.0/"
+            "three/": "https://unpkg.com/three@0.146.0/",
+            "firebase/": "https://unpkg.com/firebase@9.14.0/"
         }
     }
-
 </script>
-<!--<script src="https://unpkg.com/three@0.146.0/build/three.js"></script>-->
 <script src="js/main.js" type="module"></script>
+<script src="js/firebase/init.js" type="module"></script>
 </body>
 </html>
