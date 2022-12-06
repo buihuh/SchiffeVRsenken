@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "moduleResolution": "NodeNext",
+    "target": "es5",
+    "sourceMap": true,
+    "outDir": "dist",
+  },
+  "include" : [
+    "src/**/*"
+  ]
+}
