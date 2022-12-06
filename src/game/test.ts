@@ -1,7 +1,6 @@
 import {Player} from "./player";
-import {Match, Players} from "./match";
-import {Field} from "./field";
-import {FieldHitState, FieldStates} from "./fieldStates";
+import {getStartedField, Match, Players} from "./match";
+import {FieldStates} from "./fieldStates";
 
 const player1 = new Player(1, "Max");
 console.log(player1);
@@ -9,21 +8,15 @@ console.log(player1);
 const player2 = new Player(2, "Moritz");
 console.log(player2);
 
-let fieldPlayer1: Field[][] = [];
-let fieldPlayer2: Field[][] = [];
-for (let y: number = 0; y < 10; y++) {
-    fieldPlayer1[y] = [];
-    fieldPlayer2[y] = [];
-    for (let x: number = 0; x < 10; x++) {
-        fieldPlayer1[y][x] = new Field(x, y, x < 5 ? FieldStates.NoShip : FieldStates.Ship, FieldHitState.NoHit);
-        fieldPlayer2[y][x] = new Field(x, y, x < 5 ? FieldStates.NoShip : FieldStates.Ship, FieldHitState.NoHit);
-    }
-}
+const field1 = getStartedField();
+const field2 = getStartedField();
 
-const match = new Match(player1, player2, Players.Player1, 0, fieldPlayer1, fieldPlayer2);
+field2[0][0].shipState = FieldStates.Ship;
+field2[1][0].shipState = FieldStates.Ship;
 
-let promise = Promise.resolve([match.hit(Players.Player1, 7, 0)]);
+const match = new Match(player1, player2, Players.Player1, 0, field1, field2);
+
+let promise = Promise.resolve([match.hit(Players.Player1, 0, 0)]);
 match.printField(match.fieldPlayer2);
 
 // console.log(JSON.stringify(match, null, 2));
-// console.log(promise);
