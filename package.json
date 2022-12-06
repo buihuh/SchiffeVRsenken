@@ -4,8 +4,7 @@
   "main": "src/main.ts",
   "license": "ISC",
   "scripts": {
-    "build": "tsc",
-    "open": "open ./index.html"
+    "build": "tsc"
   },
   "dependencies": {
     "firebase": "^9.14.0",

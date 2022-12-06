@@ -1,13 +1,12 @@
-// import {initializeApp} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-app.src';
-// import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.src';
+// @ts-ignore
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js';
+// @ts-ignore
+import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js';
+import {firebaseConfig} from './firebase-config.js';
 
 // Somehow this is not working:
 // import {initializeApp} from "firebase/app";
 // import {getAnalytics} from "firebase/analytics";
-
-import {getAnalytics} from "firebase/analytics";
-import {initializeApp} from "firebase/app";
-import {firebaseConfig} from "./firebase-config";
 
 // Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
