@@ -66,6 +66,18 @@ The URL may differ according to your folder structure.
 
 The project needed be built before running the index.html file:
 
-```
+```bash
 npm run build
+```
+
+Check for newer dependency versions in package.json:
+
+```bash
+npx npm-check-updates
+```
+
+Upgrade versions in package.json (+ run ```npm install``` afterwards):
+
+```bash
+npx npm-check-updates -u
 ```
