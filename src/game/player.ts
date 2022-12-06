@@ -1,5 +1,4 @@
 export class Player {
-    constructor(public name: string, public winCounter?: number) {
-        console.log("Player Constructor is called")
+    constructor(public id: number, public name: string, public winCounter: number = 0) {
     }
 }
