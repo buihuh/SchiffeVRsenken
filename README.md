@@ -13,7 +13,7 @@ npm install
 ### Setup: Firebase
 
 For security reasons the config file for Firebase is excluded and needed to be added manually. Therefore, please add the
-file `firebase-config.ts` in the folder [./src/firebase/firebase-config.ts](src/firebase). Please
+file `firebase-config.ts` in the folder [./js/firebase/firebase-config.ts](src/firebase). Please
 contact the admin for more information.
 
 ### Setup: Browser
