@@ -1,4 +1,4 @@
 export class Player {
-    constructor(public id: number, public name: string, public winCounter: number = 0) {
+    constructor(public id: number, public name: string = "Unknown", public winCounter: number = 0, public isHost: boolean = false) {
     }
 }
