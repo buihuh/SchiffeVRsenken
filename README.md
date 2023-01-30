@@ -10,6 +10,9 @@ Install [Node.js](https://nodejs.org/en/download/) and run:
 npm install
 ```
 
+Install Webstorm
+Plugin "[Run Configuration for TypeScript](https://plugins.jetbrains.com/plugin/10841-run-configuration-for-typescript)"
+
 ### Setup: Firebase
 
 For security reasons the config file for Firebase is excluded and needed to be added manually. Therefore, please add the
