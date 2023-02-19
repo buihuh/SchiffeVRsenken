@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 
 const scene = new THREE.Scene();
-const interactableObjects = [];
+const meshesInScene = [];
 const gameObjects = [];
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -27,20 +27,26 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshLambertMaterial({color: 0xFF0000});
-const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(0, 0, -3);
-
-scene.add(mesh);
-interactableObjects.push(mesh);
-gameObjects.push(new GAME.GameTrigger(mesh, scene));
-
 const light = new THREE.PointLight(0xFFFFFF, 1, 500);
 light.position.set(10, 10, 10);
 
 scene.add(light);
+
+//<editor-fold desc="GameObjects">
+//--------------------------------
+//  GameObjects
+//--------------------------------
+const gameTrigger1 = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0xFF0000}), new THREE.Vector3(1, 0, -3),
+    scene, meshesInScene);
+gameObjects.push(gameTrigger1);
+
+const gameTrigger2 = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0xFF0000}), new THREE.Vector3(-1, 0, -3),
+    scene, meshesInScene);
+gameObjects.push(gameTrigger2);
+
+//</editor-fold>
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
     if (!mesh)
@@ -138,7 +144,7 @@ function handleController(controller) {
     const raycaster = new THREE.Raycaster();
     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
     raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
-    const intersects = raycaster.intersectObjects(interactableObjects);
+    const intersects = raycaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;

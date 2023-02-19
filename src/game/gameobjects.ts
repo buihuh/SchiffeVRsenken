@@ -3,9 +3,16 @@ import * as THREE from 'three'
 
 export abstract class GameObject {
     mesh: THREE.Mesh;
+    private scene: THREE.Scene;
+    private objectList: any[];
 
-    protected constructor(mesh: THREE.Mesh) {
-        this.mesh = mesh;
+    constructor(geometry: THREE.BufferGeometry, material: THREE.Material, position: THREE.Vector3,
+                scene: THREE.Scene, objectList: any[]) {
+        this.scene = scene
+        this.mesh = new THREE.Mesh(geometry, material);
+        this.mesh.position.set(position.x, position.y, position.z);
+        scene.add(this.mesh);
+        objectList.push(this.mesh);
     }
 
     onSelectStart() {
@@ -25,15 +32,14 @@ export abstract class GameObject {
 
     onUnfocus() {
     }
+
+    delete() {
+        this.scene.remove(this.mesh);
+        this.objectList.splice(this.objectList.indexOf(this.mesh), 1)
+    }
 }
 
 export class GameTrigger extends GameObject {
-    scene = null;
-
-    constructor(mesh: THREE.Mesh, scene: THREE.Scene) {
-        super(mesh);
-        this.scene = scene
-    }
 
     onSelectStart() {
         const material = this.mesh.material as THREE.MeshLambertMaterial
