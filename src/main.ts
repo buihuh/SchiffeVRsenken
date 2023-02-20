@@ -36,15 +36,9 @@ scene.add(light);
 //--------------------------------
 //  GameObjects
 //--------------------------------
-const gameTrigger1 = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0xFF0000}), new THREE.Vector3(1, 0, -3),
-    scene, meshesInScene);
-gameObjects.push(gameTrigger1);
-
-const gameTrigger2 = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0xFF0000}), new THREE.Vector3(-1, 0, -3),
-    scene, meshesInScene);
-gameObjects.push(gameTrigger2);
+new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
+    new THREE.Vector3(0, 0, -3), scene, meshesInScene, gameObjects);
 
 //</editor-fold>
 
@@ -148,7 +142,11 @@ function handleController(controller) {
     if (intersects.length > 0) {
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
-        selectedGameObject = getGameObjectFromMesh(intersects[0].object);
+        let foundGameObject = getGameObjectFromMesh(intersects[0].object);
+        if (selectedGameObject && selectedGameObject != foundGameObject) {
+            selectedGameObject.onUnfocus();
+        }
+        selectedGameObject = foundGameObject;
         if (!interacting && selectedGameObject) {
             selectedGameObject.onFocus();
         }
