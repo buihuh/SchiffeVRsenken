@@ -132,4 +132,4 @@ dist
 # firebase
 src/firebase/firebase-config.ts
 
-./.idea
+/.idea/*
