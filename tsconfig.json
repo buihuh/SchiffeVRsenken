@@ -2,12 +2,17 @@
   "compilerOptions": {
     "module": "es6",
     "moduleResolution": "NodeNext",
-    "target": "es5",
+    "target": "es6",
     "sourceMap": true,
     "outDir": "dist",
     "esModuleInterop": true
   },
-  "include" : [
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "include": [
     "src/**/*"
   ]
 }
