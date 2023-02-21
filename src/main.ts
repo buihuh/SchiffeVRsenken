@@ -191,7 +191,7 @@ function handleController(controller) {
 }
 
 initVRControllers();
-if (vrControllers.count > 0) {
+if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
