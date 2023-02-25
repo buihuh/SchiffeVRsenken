@@ -32,36 +32,104 @@ light.position.set(10, 10, 10);
 
 scene.add(light);
 
-const planeMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
+
+/*
+ * TODO: start grid test
+ */
+
+camera.position.set(0,-5,-20)
+camera.rotation.set(Math.PI * 45,0,0)
+
+const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
+    side: THREE.DoubleSide, visible: false
+}));
+planeMesh.rotateX(-Math.PI / 2);
+scene.add(planeMesh);
+
+const grid = new THREE.GridHelper(10, 10);
+scene.add(grid);
+
+
+const highlightMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide
     })
 );
-planeMesh.rotateX(-Math.PI / 2);
-scene.add(planeMesh);
 
-const grid = new THREE.GridHelper(10, 10)
-scene.add(grid);
+highlightMesh.rotateX(-Math.PI / 2);
+highlightMesh.position.set(0.5, 0, 0.5);
+scene.add(highlightMesh);
+scene.add(highlightMesh)
 
+planeMesh.name = 'ground';
+
+const mousePosition = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+let intersects;
+
+const objects = [];
+
+window.addEventListener('mousemove', function(e) {
+    mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mousePosition, camera);
+    intersects = raycaster.intersectObject(planeMesh);
+    if(intersects.length > 0) {
+        const intersect = intersects[0];
+        const highlightPos = new THREE.Vector3().copy(intersect.point).floor().addScalar(0.5);
+        highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
+
+        const objectExist = objects.find(function(object) {
+            return (object.position.x === highlightMesh.position.x)
+                && (object.position.z === highlightMesh.position.z)
+        });
+
+        if(!objectExist)
+            highlightMesh.material.color.setHex(0xFFFFFF);
+        else
+            highlightMesh.material.color.setHex(0xFF0000);
+    }
+});
+
+function animate(time) {
+    highlightMesh.material.opacity = 1 + Math.sin(time / 120);
+    objects.forEach(function(object) {
+        object.rotation.x = time / 1000;
+        object.rotation.z = time / 1000;
+        object.position.y = 0.5 + 0.5 * Math.abs(Math.sin(time / 1000));
+    });
+    renderer.render(scene, camera);
+}
+
+renderer.setAnimationLoop(animate);
+
+window.addEventListener('resize', function() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/*
+ * TODO: end grid test
+ */
 
 //<editor-fold desc="GameObjects">
 //--------------------------------
 //  GameObjects
 //--------------------------------
-new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
-    new THREE.Vector3(0, 0, -3), scene, meshesInScene, gameObjects);
+
+// new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+//     new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
+//     new THREE.Vector3(0, 0, -3), scene, meshesInScene, gameObjects);
 
 //</editor-fold>
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
-    if (!mesh)
-        return null;
+    if (!mesh) return null;
 
     for (const object of gameObjects) {
-        if (object instanceof GAME.GameObject && object.mesh === mesh)
-            return object;
+        if (object instanceof GAME.GameObject && object.mesh === mesh) return object;
     }
 
     return null;
