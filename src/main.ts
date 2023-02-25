@@ -2,6 +2,8 @@ import {VRButton} from 'three/examples/jsm/webxr/VRButton.js';
 import {XRControllerModelFactory} from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -13,6 +15,10 @@ camera.position.z = 3;
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setClearColor("#0055ff");
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.update();
+
 
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
