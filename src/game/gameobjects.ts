@@ -76,6 +76,11 @@ class PlayingField extends GameObject {
     private readonly grid: THREE.GridHelper;
     private readonly highlightMesh: THREE.Mesh;
 
+    private ships1;
+    private ships2;
+
+    private shipMesh;
+
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
             side: THREE.DoubleSide, visible: false
@@ -94,12 +99,64 @@ class PlayingField extends GameObject {
         this.highlightMesh.rotateX(-Math.PI / 2);
         this.highlightMesh.position.set(0.5, 0, 0.5);
         scene.add(this.highlightMesh);
+
+        this.shipMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.4, 4, 2),
+            new THREE.MeshBasicMaterial({
+                wireframe: true,
+                color: 0xFFEA00
+            })
+        );
+
+        this.ships1 = [];
+        this.ships2 = [];
+    }
+
+    onFocus() {
+        super.onFocus();
+        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        highlightMaterial.visible = true;
+    }
+
+    onUnfocus() {
+        super.onUnfocus();
+        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        highlightMaterial.visible = false;
     }
 
     onIntersect(intersectPoint: THREE.Vector3) {
         super.onIntersect(intersectPoint);
         const highlightPos = intersectPoint.floor().addScalar(0.5);
         this.highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
+
+        const shipExist = this.ships1.find(function (object) {
+            return (object.position.x === highlightPos.x)
+                && (object.position.z === highlightPos.z)
+        });
+
+        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        if (!shipExist)
+            highlightMaterial.color.setHex(0xFFFFFF);
+        else
+            highlightMaterial.color.setHex(0xFF0000);
+    }
+
+    onSelectStart() {
+        super.onSelectStart();
+        const highlightPos = this.highlightMesh.position;
+        const objectExist = this.ships1.find(function (object) {
+            return (object.position.x === highlightPos.x)
+                && (object.position.z === highlightPos.z)
+        });
+
+        if (!objectExist) {
+            const shipClone = this.shipMesh.clone();
+            shipClone.position.copy(highlightPos);
+            this.scene.add(shipClone);
+            this.ships1.push(shipClone);
+            const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+            highlightMaterial.color.setHex(0xFF0000);
+        }
     }
 }
 
