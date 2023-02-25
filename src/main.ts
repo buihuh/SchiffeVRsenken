@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import * as TextTest from './game/text.js';
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -70,6 +71,40 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
     return null;
 }
+
+/*
+ * TODO: start test load model
+ */
+
+const gltfLoader = new GLTFLoader();
+const url = './resources/models/boat.gltf';
+
+// Load a glTF resource
+gltfLoader.load(
+    // resource URL
+    url,
+    // called when the resource is loaded
+    function ( gltf ) {
+        const root = gltf.scene;
+        scene.add(root);
+    },
+    // called while loading is progressing
+    function ( xhr ) {
+
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    },
+    // called when loading has errors
+    function ( error ) {
+
+        console.log( 'An error happened' + error.message);
+
+    }
+);
+
+/*
+ * TODO: end test load model
+ */
 
 //VR-Controllers
 function buildControllers() {
