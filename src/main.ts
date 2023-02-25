@@ -76,6 +76,8 @@ let intersects;
 
 const objects = [];
 
+
+
 window.addEventListener('mousemove', function(e) {
     mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
     mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -96,6 +98,32 @@ window.addEventListener('mousemove', function(e) {
         else
             highlightMesh.material.color.setHex(0xFF0000);
     }
+});
+
+const sphereMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 4, 2),
+    new THREE.MeshBasicMaterial({
+        wireframe: true,
+        color: 0xFFEA00
+    })
+);
+
+window.addEventListener('mousedown', function() {
+    const objectExist = objects.find(function(object) {
+        return (object.position.x === highlightMesh.position.x)
+            && (object.position.z === highlightMesh.position.z)
+    });
+
+    if(!objectExist) {
+        if(intersects.length > 0) {
+            const sphereClone = sphereMesh.clone();
+            sphereClone.position.copy(highlightMesh.position);
+            scene.add(sphereClone);
+            objects.push(sphereClone);
+            highlightMesh.material.color.setHex(0xFF0000);
+        }
+    }
+    console.log(scene.children.length);
 });
 
 function animate(time) {
