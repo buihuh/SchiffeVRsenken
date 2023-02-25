@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
+import {Field} from "./field.js";
+import {MeshBasicMaterial} from "three";
 
 export abstract class GameObject {
     mesh: THREE.Mesh;
@@ -76,10 +78,13 @@ class PlayingField extends GameObject {
     private readonly grid: THREE.GridHelper;
     private readonly highlightMesh: THREE.Mesh;
 
-    private ships1;
-    private ships2;
-
     private shipMesh;
+
+    private fieldStatusMeshes;
+    private player1: Player;
+    private player2: Player;
+    private playingField1: Field[][];
+    private playingField2: Field[][];
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -88,17 +93,44 @@ class PlayingField extends GameObject {
         this.mesh.rotateX(-Math.PI / 2);
 
         this.grid = new THREE.GridHelper(10, 10);
+        this.grid.position.set(position.x, position.y, position.z);
         this.scene.add(this.grid);
 
         this.highlightMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(1, 1),
+            new THREE.SphereGeometry(0.4, 4, 2),
             new THREE.MeshBasicMaterial({
-                side: THREE.DoubleSide
+                wireframe: true,
+                color: 0xFFEA00
             })
         );
-        this.highlightMesh.rotateX(-Math.PI / 2);
         this.highlightMesh.position.set(0.5, 0, 0.5);
         scene.add(this.highlightMesh);
+
+        const fieldMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1),
+            new THREE.MeshBasicMaterial({
+                side: THREE.DoubleSide,
+                color: 0xFFFFFF,
+                visible: true
+            })
+        );
+        fieldMesh.rotateX(-Math.PI / 2);
+
+        this.fieldStatusMeshes = [];
+        let fieldPositionZ = position.z - 5 + 0.5;
+        for (let i = 0; i < 10; i++) {
+            let fieldPositionX = position.x - 5 + 0.5;
+            const meshRow = []
+            for (let j = 0; j < 10; j++) {
+                let field = fieldMesh.clone();
+                field.position.set(fieldPositionX, 0, fieldPositionZ);
+                meshRow.push(field);
+                this.scene.add(field);
+                fieldPositionX += 1.0;
+            }
+            this.fieldStatusMeshes.push(meshRow);
+            fieldPositionZ += 1.0;
+        }
 
         this.shipMesh = new THREE.Mesh(
             new THREE.SphereGeometry(0.4, 4, 2),
@@ -108,8 +140,35 @@ class PlayingField extends GameObject {
             })
         );
 
-        this.ships1 = [];
-        this.ships2 = [];
+        //Game Setup
+        this.player1 = new Player(0, "Max");
+        this.player2 = new Player(1, "Moritz");
+
+        this.playingField1 = getStartedField();
+        this.playingField2 = getStartedField();
+
+    }
+
+    private showOwnPlayingFieldStatus(playingField: Field[][]) {
+        for (let i = 0; i < playingField.length; i++) {
+            for (let j = 0; j < playingField[i].length; j++) {
+                if (playingField[i][j].hasShip) {
+                    const statusMesh = this.fieldStatusMeshes[i][j];
+                    const material = statusMesh.material as MeshBasicMaterial;
+                    material.color.setHex(0x00FF00);
+                }
+            }
+        }
+    }
+
+    private showTargetPlayingFieldStatus(enemyPlayingField: Field[][]) {
+        for (let i = 0; i < enemyPlayingField.length; i++) {
+            for (let j = 0; j < enemyPlayingField[i].length; j++) {
+                if (enemyPlayingField[i][j].hasShip) {
+
+                }
+            }
+        }
     }
 
     onFocus() {
@@ -129,34 +188,21 @@ class PlayingField extends GameObject {
         const highlightPos = intersectPoint.floor().addScalar(0.5);
         this.highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
 
-        const shipExist = this.ships1.find(function (object) {
-            return (object.position.x === highlightPos.x)
-                && (object.position.z === highlightPos.z)
-        });
-
-        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
-        if (!shipExist)
-            highlightMaterial.color.setHex(0xFFFFFF);
-        else
-            highlightMaterial.color.setHex(0xFF0000);
+        // const shipExist = this.ships1.find(function (object) {
+        //     return (object.position.x === highlightPos.x)
+        //         && (object.position.z === highlightPos.z)
+        // });
+        //
+        // const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        // if (!shipExist)
+        //     highlightMaterial.color.setHex(0xFFFFFF);
+        // else
+        //     highlightMaterial.color.setHex(0xFF0000);
     }
 
     onSelectStart() {
         super.onSelectStart();
         const highlightPos = this.highlightMesh.position;
-        const objectExist = this.ships1.find(function (object) {
-            return (object.position.x === highlightPos.x)
-                && (object.position.z === highlightPos.z)
-        });
-
-        if (!objectExist) {
-            const shipClone = this.shipMesh.clone();
-            shipClone.position.copy(highlightPos);
-            this.scene.add(shipClone);
-            this.ships1.push(shipClone);
-            const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
-            highlightMaterial.color.setHex(0xFF0000);
-        }
     }
 }
 
