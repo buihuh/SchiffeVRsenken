@@ -32,6 +32,19 @@ light.position.set(10, 10, 10);
 
 scene.add(light);
 
+const planeMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, 10),
+    new THREE.MeshBasicMaterial({
+        side: THREE.DoubleSide
+    })
+);
+planeMesh.rotateX(-Math.PI / 2);
+scene.add(planeMesh);
+
+const grid = new THREE.GridHelper(10, 10)
+scene.add(grid);
+
+
 //<editor-fold desc="GameObjects">
 //--------------------------------
 //  GameObjects
