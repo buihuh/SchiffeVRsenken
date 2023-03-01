@@ -1,16 +1,25 @@
 import {VRButton} from 'three/examples/jsm/webxr/VRButton.js';
 import {XRControllerModelFactory} from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
 import * as THREE from 'three';
+import * as GAME from "./game/gameobjects.js";
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import * as TextTest from './game/text.js';
 
 const scene = new THREE.Scene();
-const interactableObjects = [];
+const meshesInScene = [];
+const gameObjects = [];
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 3;
+
+camera.position.set(0, 5, -15);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setClearColor("#0055ff");
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.update();
+
 
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
@@ -25,20 +34,42 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshLambertMaterial({color: 0xFF0000});
-const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(0, 0, -3);
-
-scene.add(mesh);
-interactableObjects.push(mesh);
-
 const light = new THREE.PointLight(0xFFFFFF, 1, 500);
 light.position.set(10, 10, 10);
 
 scene.add(light);
 
+//<editor-fold desc="GameObjects">
+//--------------------------------
+//  GameObjects
+//--------------------------------
+
+new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
+    new THREE.Vector3(0, 0, -3), scene, meshesInScene, gameObjects);
+
+
+//</editor-fold>
+
+/**
+ * TODO: start Test Text
+ */
+
+const text = new TextTest.TextTest("This is a test!");
+
+/**
+ * TODO: end Test Text
+ */
+
+function getGameObjectFromMesh(mesh): GAME.GameObject {
+    if (!mesh) return null;
+
+    for (const object of gameObjects) {
+        if (object instanceof GAME.GameObject && object.mesh === mesh) return object;
+    }
+
+    return null;
+}
 
 //VR-Controllers
 function buildControllers() {
@@ -101,8 +132,7 @@ function initVRControllers() {
     });
 }
 
-let selectedObject = null;
-let selectedObjectDistance = null;
+let selectedGameObject = null;
 let interacting = false;
 
 function setActiveController(controller) {
@@ -125,54 +155,63 @@ function handleController(controller) {
     const raycaster = new THREE.Raycaster();
     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
     raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
-    const intersects = raycaster.intersectObjects(interactableObjects);
+    const intersects = raycaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
+        //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
-        selectedObject = intersects[0].object;
-        selectedObjectDistance = selectedObject.position.distance;
-        if (!interacting) {
-            selectedObject.material.color = new THREE.Color(255, 255, 0);
+        let foundGameObject = getGameObjectFromMesh(intersects[0].object);
+        if (selectedGameObject && selectedGameObject != foundGameObject) {
+            selectedGameObject.onUnfocus();
+        }
+        selectedGameObject = foundGameObject;
+        if (selectedGameObject) {
+            if (!interacting)
+                selectedGameObject.onFocus();
+
+            selectedGameObject.onIntersect(new THREE.Vector3().copy(intersects[0].point));
         }
     } else {
+        //Controller is not pointing at an object
         controller.children[0].scale.z = 10;
-        if (selectedObject) {
-            selectedObject.material.color = new THREE.Color(255, 0, 0);
-            selectedObject = null;
+        if (selectedGameObject) {
+            selectedGameObject.onUnfocus();
+            selectedGameObject = null;
         }
     }
     //SelectButton
     if (controller.userData.selectPressed) {
-        if (!controller.userData.selectPressedPrev && selectedObject && !interacting) {
+        if (!controller.userData.selectPressedPrev && selectedGameObject && !interacting) {
             //Select is pressed
-            selectedObject.material.color = new THREE.Color(0, 255, 0);
+            selectedGameObject.onSelectStart();
             interacting = true;
-        } /*else if (selectedObject != null) {
-            //Select is held => Drag the cube around
-            const moveVector = controller.getWorldDirection(new THREE.Vector3())
-                .multiplyScalar(selectedObjectDistance).negate();
-            selectedObject.position.copy(controller.position.clone().add(moveVector));
-        }*/
+        }
     } else if (controller.userData.selectPressedPrev) {
         //Select is released
+        if (selectedGameObject) {
+            selectedGameObject.onSelectEnd();
+        }
         interacting = false;
     }
     controller.userData.selectPressedPrev = controller.userData.selectPressed;
     //SqueezeButton
     if (controller.userData.squeezePressed) {
-        if (!controller.userData.squeezePressedPrev && selectedObject && !interacting) {
+        if (!controller.userData.squeezePressedPrev && selectedGameObject && !interacting) {
             //Squeeze is pressed
-            selectedObject.material.color = new THREE.Color(0, 0, 255);
+            selectedGameObject.onSqueezeStart();
             interacting = true;
         }
     } else if (controller.userData.squeezePressedPrev) {
         //Squeeze is released
+        if (selectedGameObject) {
+            selectedGameObject.onSqueezeEnd();
+        }
         interacting = false;
     }
     controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
 
 initVRControllers();
-if (vrControllers.count > 0) {
+if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
@@ -185,6 +224,9 @@ renderer.setAnimationLoop(function () {
         });
     }
 
+    scene.remove(text.planeMesh);
+    text.refreshText();
+    scene.add(text.planeMesh);
 
     //Cube rotation
     // mesh.rotation.y += 0.01;

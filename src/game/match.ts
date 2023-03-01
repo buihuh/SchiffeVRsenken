@@ -1,5 +1,5 @@
-import {Player} from "./player";
-import {Field} from "./field";
+import {Player} from "./player.js";
+import {Field} from "./field.js";
 
 export enum Players {
     Player1, Player2
