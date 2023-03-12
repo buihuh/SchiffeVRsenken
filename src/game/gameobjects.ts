@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
 import {Field} from "./field.js";
-import {MeshBasicMaterial} from "three";
 
 export abstract class GameObject {
     mesh: THREE.Mesh;
@@ -83,8 +82,10 @@ class PlayingField extends GameObject {
     private fieldStatusMeshes;
     private player1: Player;
     private player2: Player;
+    private activePlayer: Player;
     private playingField1: Field[][];
     private playingField2: Field[][];
+    private gamePhase;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -106,30 +107,28 @@ class PlayingField extends GameObject {
         this.highlightMesh.position.set(0.5, 0, 0.5);
         scene.add(this.highlightMesh);
 
-        const fieldMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(1, 1),
-            new THREE.MeshBasicMaterial({
-                side: THREE.DoubleSide,
-                color: 0xFFFFFF,
-                visible: true
-            })
-        );
-        fieldMesh.rotateX(-Math.PI / 2);
-
         this.fieldStatusMeshes = [];
-        let fieldPositionZ = position.z - 5 + 0.5;
+        let fieldPositionX = position.x - 5 + 0.5;
         for (let i = 0; i < 10; i++) {
-            let fieldPositionX = position.x - 5 + 0.5;
+            let fieldPositionZ = position.z - 5 + 0.5;
             const meshRow = []
             for (let j = 0; j < 10; j++) {
-                let field = fieldMesh.clone();
-                field.position.set(fieldPositionX, 0, fieldPositionZ);
+                let field = new THREE.Mesh(
+                    new THREE.PlaneGeometry(1, 1),
+                    new THREE.MeshBasicMaterial({
+                        side: THREE.DoubleSide,
+                        color: 0xFFFFFF,
+                        visible: true
+                    })
+                );
+                field.rotateX(-Math.PI / 2);
+                field.position.set(fieldPositionZ, 0, fieldPositionX);
                 meshRow.push(field);
                 this.scene.add(field);
-                fieldPositionX += 1.0;
+                fieldPositionZ += 1.0;
             }
             this.fieldStatusMeshes.push(meshRow);
-            fieldPositionZ += 1.0;
+            fieldPositionX += 1.0;
         }
 
         this.shipMesh = new THREE.Mesh(
@@ -147,16 +146,23 @@ class PlayingField extends GameObject {
         this.playingField1 = getStartedField();
         this.playingField2 = getStartedField();
 
+        this.activePlayer = this.player1;
+        this.gamePhase = "setup"
+
     }
 
     private showOwnPlayingFieldStatus(playingField: Field[][]) {
         for (let i = 0; i < playingField.length; i++) {
             for (let j = 0; j < playingField[i].length; j++) {
+                const statusMesh = this.fieldStatusMeshes[j][i];
+                const material = statusMesh.material as THREE.MeshBasicMaterial;
+                console.log("(" + i + "," + j + "): " + playingField[i][j].hasShip)
                 if (playingField[i][j].hasShip) {
-                    const statusMesh = this.fieldStatusMeshes[i][j];
-                    const material = statusMesh.material as MeshBasicMaterial;
                     material.color.setHex(0x00FF00);
+                } else {
+                    material.color.setHex(0xFFFFFF);
                 }
+                statusMesh.material;
             }
         }
     }
@@ -169,6 +175,17 @@ class PlayingField extends GameObject {
                 }
             }
         }
+    }
+
+    private getHighlightedGridPosition() {
+        let highlightPosX = this.mesh.position.x + 5 + this.highlightMesh.position.x;
+        let highlightPosZ = this.mesh.position.z + 5 + this.highlightMesh.position.z;
+
+        return [Math.floor(highlightPosX), Math.floor(highlightPosZ)]
+    }
+
+    private update() {
+        this.showOwnPlayingFieldStatus(this.playingField1);
     }
 
     onFocus() {
@@ -202,7 +219,17 @@ class PlayingField extends GameObject {
 
     onSelectStart() {
         super.onSelectStart();
-        const highlightPos = this.highlightMesh.position;
+        const highlightPos = this.getHighlightedGridPosition();
+        console.log("Select on " + Math.floor(highlightPos[0]) + "," + Math.floor(highlightPos[1]));
+        const currentField = this.playingField1[highlightPos[0]][highlightPos[1]];
+
+        switch (this.gamePhase) {
+            case "setup":
+                //TODO setup code here
+                currentField.hasShip = !currentField.hasShip;
+                break;
+        }
+        this.update()
     }
 }
 
