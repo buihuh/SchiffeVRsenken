@@ -85,6 +85,7 @@ class PlayingField extends GameObject {
     private activePlayer: Player;
     private playingField1: Field[][];
     private playingField2: Field[][];
+    private activePlayingField: Field[][];
     private gamePhase;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
@@ -147,6 +148,7 @@ class PlayingField extends GameObject {
         this.playingField2 = getStartedField();
 
         this.activePlayer = this.player1;
+        this.activePlayingField = this.playingField1
         this.gamePhase = "setup"
 
     }
@@ -170,8 +172,16 @@ class PlayingField extends GameObject {
     private showTargetPlayingFieldStatus(enemyPlayingField: Field[][]) {
         for (let i = 0; i < enemyPlayingField.length; i++) {
             for (let j = 0; j < enemyPlayingField[i].length; j++) {
+                const statusMesh = this.fieldStatusMeshes[j][i];
+                const material = statusMesh.material as THREE.MeshBasicMaterial;
+                if (!enemyPlayingField[i][j].isHit) {
+                    material.color.setHex(0xFFFFFF);
+                    continue;
+                }
                 if (enemyPlayingField[i][j].hasShip) {
-
+                    material.color.setHex(0xFF0000);
+                } else {
+                    material.color.setHex(0x0000FF);
                 }
             }
         }
@@ -185,7 +195,34 @@ class PlayingField extends GameObject {
     }
 
     private update() {
-        this.showOwnPlayingFieldStatus(this.playingField1);
+        switch (this.gamePhase) {
+            //this is needed as long we only have on grid
+            case "setup":
+                this.showOwnPlayingFieldStatus(this.activePlayingField);
+                break;
+            case "ownturn":
+                if (this.activePlayer == this.player1) {
+                    this.showTargetPlayingFieldStatus(this.playingField2);
+                } else {
+                    this.showTargetPlayingFieldStatus(this.playingField1);
+                }
+                break;
+        }
+    }
+
+    public nextTurn() {
+        if (this.activePlayer == this.player1) {
+            this.activePlayer = this.player2;
+            this.activePlayingField = this.playingField2;
+        } else {
+            this.activePlayer = this.player1;
+            this.activePlayingField = this.playingField1;
+
+            if (this.gamePhase == "setup") {
+                this.gamePhase = "ownturn";
+            }
+        }
+        this.update();
     }
 
     onFocus() {
@@ -204,29 +241,25 @@ class PlayingField extends GameObject {
         super.onIntersect(intersectPoint);
         const highlightPos = intersectPoint.floor().addScalar(0.5);
         this.highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
-
-        // const shipExist = this.ships1.find(function (object) {
-        //     return (object.position.x === highlightPos.x)
-        //         && (object.position.z === highlightPos.z)
-        // });
-        //
-        // const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
-        // if (!shipExist)
-        //     highlightMaterial.color.setHex(0xFFFFFF);
-        // else
-        //     highlightMaterial.color.setHex(0xFF0000);
     }
 
     onSelectStart() {
         super.onSelectStart();
         const highlightPos = this.getHighlightedGridPosition();
-        console.log("Select on " + Math.floor(highlightPos[0]) + "," + Math.floor(highlightPos[1]));
-        const currentField = this.playingField1[highlightPos[0]][highlightPos[1]];
+        const currentField = this.activePlayingField[highlightPos[0]][highlightPos[1]];
 
         switch (this.gamePhase) {
             case "setup":
-                //TODO setup code here
+                //TODO do ships instead of single fields
                 currentField.hasShip = !currentField.hasShip;
+                break;
+            case "ownturn":
+                if (!currentField.isHit) {
+                    currentField.isHit = true;
+                }
+                break;
+            case "oppturn":
+                //can't interact
                 break;
         }
         this.update()
@@ -234,63 +267,17 @@ class PlayingField extends GameObject {
 }
 
 export class GameTrigger extends GameObject {
+    started = false;
+    playingField;
 
     onSelectStart() {
-        new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList, this.objectList);
-        this.delete();
-        // const player1 = new Player(1, "Max", 0, true);
-        // console.log(player1);
-        //
-        // const player2 = new Player(2, "Moritz", 0, false);
-        // console.log(player2);
-        //
-        // const field1 = getStartedField();
-        // const field2 = getStartedField();
-        //
-        // field1[0][0].hasShip = true;
-        // field1[0][1].hasShip = true;
-        // field2[0][0].hasShip = true;
-        // field2[1][0].hasShip = true;
-        //
-        // const match = new Match(player1, player2, Players.Player1, 0, field1, field2);
-        //
-        // console.log("------------------------------------------")
-        //
-        // /**
-        //  * Round 0
-        //  */
-        //
-        // let result1: string = match.hit(Players.Player1, 0, 0);
-        // console.log(result1)
-        //
-        // const check1 = match.checkState();
-        // console.log("State: " + GameState[check1]);
-        //
-        // console.log("------------------------------------------")
-        //
-        // match.nextRound();
-        //
-        // /**
-        //  * Round 1
-        //  */
-        //
-        // let result2 = match.hit(Players.Player2, 1, 1);
-        // console.log(result2)
-        //
-        // const check2 = match.checkState();
-        // console.log("State: " + GameState[check2]);
-        //
-        // /**
-        //  * Result
-        //  */
-        //
-        // console.log("------------------------------------------")
-        // console.log("Player 1:")
-        // match.printField(match.fieldPlayer1);
-        //
-        // console.log("------------------------------------------")
-        // console.log("Player 2:")
-        // match.printField(match.fieldPlayer2);
+        if (!this.started) {
+            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList, this.objectList);
+            this.started = true;
+            return;
+        }
+
+        this.playingField.nextTurn();
     }
 
     onFocus() {
