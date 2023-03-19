@@ -87,7 +87,8 @@ class PlayingField extends GameObject {
     private gamePhase;
     private match: Match;
     private shipCounter = 0;
-    private setShipHorizontal = false;
+    private setShipHorizontal = true;
+    private shipSize = 1;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -232,55 +233,95 @@ class PlayingField extends GameObject {
         }
     }
 
-    private setShip(currentFieldX: number, currentFieldY: number) {
-        const selectedFields = [];
-        selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY]);
-        if (this.shipCounter >= 4) {
-            // set 2 field ship
-            if (this.setShipHorizontal) {
-                if (currentFieldX >= 9)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX + 1][currentFieldY])
-            } else {
-                if (currentFieldY >= 9)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 1])
-            }
-        }
-        if (this.shipCounter >= 7) {
-            // set 3 field ship
-            if (this.setShipHorizontal) {
-                if (currentFieldX >= 8)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX + 2][currentFieldY])
-            } else {
-                if (currentFieldY >= 8)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 2])
-            }
-        }
-        if (this.shipCounter >= 9) {
-            // set 4 field ship
-            if (this.setShipHorizontal) {
-                if (currentFieldX >= 7)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX + 3][currentFieldY])
-            } else {
-                if (currentFieldY >= 7)
-                    return;
-                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 3])
-            }
+    private checkShipPlacement(posX: number, posY: number, horizontal: boolean, shipSize: number, playingField: Field[][]) {
+        // check if ship is completely on playing field
+        if ((horizontal && posX + shipSize > 10) || (!horizontal && posY + shipSize > 10))
+            return false;
 
+        // check if placing ship directly onto another ship
+        if (playingField[posX][posY].hasShip)
+            return false;
+
+        // check if one of the ship tiles is adjacent to another ship
+        for (let i = 0; i < shipSize; i++) {
+            let hasShip = false;
+            if (horizontal) {
+                if (posX + i - 1 >= 0) {
+                    hasShip = hasShip || playingField[posX + i - 1][posY].hasShip;
+                    if (posY > 0) {
+                        hasShip = hasShip || playingField[posX + i - 1][posY - 1].hasShip;
+                    }
+                    if (posY < 9) {
+                        hasShip = hasShip || playingField[posX + i - 1][posY + 1].hasShip;
+                    }
+                }
+                if (posX + i + 1 < 10) {
+                    hasShip = hasShip || playingField[posX + i + 1][posY].hasShip;
+                    if (posY > 0) {
+                        hasShip = hasShip || playingField[posX + i + 1][posY - 1].hasShip;
+                    }
+                    if (posY < 9) {
+                        hasShip = hasShip || playingField[posX + i + 1][posY + 1].hasShip;
+                    }
+                }
+                if (posY > 0) {
+                    hasShip = hasShip || playingField[posX + i][posY - 1].hasShip;
+                }
+                if (posY < 9) {
+                    hasShip = hasShip || playingField[posX + i][posY + 1].hasShip;
+                }
+            } else {
+                if (posY + i - 1 >= 0) {
+                    hasShip = hasShip || playingField[posX][posY + i - 1].hasShip;
+                    if (posX > 0) {
+                        hasShip = hasShip || playingField[posX - 1][posY + i - 1].hasShip;
+                    }
+                    if (posX < 9) {
+                        hasShip = hasShip || playingField[posX + 1][posY + i - 1].hasShip;
+                    }
+                }
+                if (posY + i + 1 < 10) {
+                    hasShip = hasShip || playingField[posX][posY + i + 1].hasShip;
+                    if (posX > 0) {
+                        hasShip = hasShip || playingField[posX - 1][posY + i + 1].hasShip;
+                    }
+                    if (posX < 9) {
+                        hasShip = hasShip || playingField[posX + 1][posY + i + 1].hasShip;
+                    }
+                }
+                if (posX > 0) {
+                    hasShip = hasShip || playingField[posX - 1][posY + i].hasShip;
+                }
+                if (posX < 9) {
+                    hasShip = hasShip || playingField[posX + 1][posY + i].hasShip;
+                }
+            }
+            if (hasShip)
+                return false;
         }
-        selectedFields.forEach(function (field: Field) {
-            field.hasShip = true;
-        });
+        return true;
+    }
+
+    private setShip(currentFieldX: number, currentFieldY: number) {
+        if (!this.checkShipPlacement(currentFieldX, currentFieldY, this.setShipHorizontal,
+            this.shipSize, this.activePlayingField))
+            return;
+
+        for (let i = 0; i < this.shipSize; i++) {
+            if (this.setShipHorizontal) {
+                this.activePlayingField[currentFieldX + i][currentFieldY].hasShip = true;
+            } else {
+                this.activePlayingField[currentFieldX][currentFieldY + i].hasShip = true;
+            }
+        }
 
         if (this.shipCounter >= 9) {
             this.shipCounter = 0;
+            this.shipSize = 1;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
+            this.nextTurn();
             return;
         }
         this.shipCounter++;
@@ -320,31 +361,39 @@ class PlayingField extends GameObject {
         this.highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
 
         if (this.gamePhase == "setup") {
-            if (this.shipCounter >= 4) {
-                (this.setShipMeshes[1].material as THREE.MeshBasicMaterial).visible = true;
+            switch (this.shipCounter) {
+                case 4:
+                    this.shipSize = 2;
+                    break;
+                case 7:
+                    this.shipSize = 3;
+                    break;
+                case 9:
+                    this.shipSize = 4;
+                    break;
+                default:
+                    break;
+            }
+
+            const gridPos = this.getHighlightedGridPosition()
+            const placeable = this.checkShipPlacement(gridPos[0], gridPos[1],
+                this.setShipHorizontal, this.shipSize, this.activePlayingField);
+
+            for (let i = 0; i < this.shipSize; i++) {
+                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = true;
+
                 if (this.setShipHorizontal) {
-                    this.setShipMeshes[1].position.set(highlightPos.x + 1, 0, highlightPos.z);
+                    this.setShipMeshes[i].position.set(highlightPos.x + i, 0, highlightPos.z);
                 } else {
-                    this.setShipMeshes[1].position.set(highlightPos.x, 0, highlightPos.z + 1);
+                    this.setShipMeshes[i].position.set(highlightPos.x, 0, highlightPos.z + i);
+                }
+
+                if (placeable) {
+                    (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
+                } else {
+                    (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).color.setHex(0xFF0000);
                 }
             }
-            if (this.shipCounter >= 7) {
-                (this.setShipMeshes[2].material as THREE.MeshBasicMaterial).visible = true;
-                if (this.setShipHorizontal) {
-                    this.setShipMeshes[2].position.set(highlightPos.x + 2, 0, highlightPos.z);
-                } else {
-                    this.setShipMeshes[2].position.set(highlightPos.x, 0, highlightPos.z + 2);
-                }
-            }
-            if (this.shipCounter >= 9) {
-                (this.setShipMeshes[3].material as THREE.MeshBasicMaterial).visible = true;
-                if (this.setShipHorizontal) {
-                    this.setShipMeshes[3].position.set(highlightPos.x + 3, 0, highlightPos.z);
-                } else {
-                    this.setShipMeshes[3].position.set(highlightPos.x, 0, highlightPos.z + 3);
-                }
-            }
-            return;
         }
     }
 
