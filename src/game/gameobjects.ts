@@ -77,16 +77,17 @@ class PlayingField extends GameObject {
     private readonly grid: THREE.GridHelper;
     private readonly highlightMesh: THREE.Mesh;
 
+    private setShipMeshes;
+
     private shipMesh;
 
     private fieldStatusMeshes;
-    private player1: Player;
-    private player2: Player;
-    private activePlayer: Player;
-    private playingField1: Field[][];
-    private playingField2: Field[][];
+    private activePlayer: Players;
     private activePlayingField: Field[][];
     private gamePhase;
+    private match: Match;
+    private shipCounter = 0;
+    private setShipHorizontal = false;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -107,6 +108,21 @@ class PlayingField extends GameObject {
         );
         this.highlightMesh.position.set(0.5, 0, 0.5);
         scene.add(this.highlightMesh);
+
+        this.setShipMeshes = [];
+        this.setShipMeshes.push(this.highlightMesh);
+        for (let i = 1; i < 4; i++) {
+            const setShipMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 4, 2),
+                new THREE.MeshBasicMaterial({
+                    wireframe: true,
+                    color: 0xFFEA00,
+                    visible: false
+                })
+            );
+            scene.add(setShipMesh);
+            this.setShipMeshes.push(setShipMesh);
+        }
 
         this.fieldStatusMeshes = [];
         let fieldPositionX = position.x - 5 + 0.5;
@@ -141,15 +157,16 @@ class PlayingField extends GameObject {
         );
 
         //Game Setup
-        this.player1 = new Player(0, "Max");
-        this.player2 = new Player(1, "Moritz");
+        let player1 = new Player(0, "Max");
+        let player2 = new Player(1, "Moritz");
 
-        this.playingField1 = getStartedField();
-        this.playingField2 = getStartedField();
+        let playingField1 = getStartedField();
+        let playingField2 = getStartedField();
 
-        this.activePlayer = this.player1;
-        this.activePlayingField = this.playingField1
+        this.activePlayer = Players.Player1;
+        this.activePlayingField = playingField1
         this.gamePhase = "setup"
+        this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
 
     }
 
@@ -195,31 +212,90 @@ class PlayingField extends GameObject {
     }
 
     private update() {
+        //Check if match is over
+        if (this.match.checkState() == GameState.GameOver) {
+            //TODO: do something cool
+            return;
+        }
         switch (this.gamePhase) {
             //this is needed as long we only have on grid
             case "setup":
                 this.showOwnPlayingFieldStatus(this.activePlayingField);
                 break;
-            case "ownturn":
-                if (this.activePlayer == this.player1) {
-                    this.showTargetPlayingFieldStatus(this.playingField2);
+            case "running":
+                if (this.activePlayer == Players.Player1) {
+                    this.showTargetPlayingFieldStatus(this.activePlayingField);
                 } else {
-                    this.showTargetPlayingFieldStatus(this.playingField1);
+                    this.showTargetPlayingFieldStatus(this.activePlayingField);
                 }
                 break;
         }
     }
 
-    public nextTurn() {
-        if (this.activePlayer == this.player1) {
-            this.activePlayer = this.player2;
-            this.activePlayingField = this.playingField2;
+    private setShip(currentFieldX: number, currentFieldY: number) {
+        const selectedFields = [];
+        selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY]);
+        if (this.shipCounter >= 4) {
+            // set 2 field ship
+            if (this.setShipHorizontal) {
+                if (currentFieldX >= 9)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX + 1][currentFieldY])
+            } else {
+                if (currentFieldY >= 9)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 1])
+            }
+        }
+        if (this.shipCounter >= 7) {
+            // set 3 field ship
+            if (this.setShipHorizontal) {
+                if (currentFieldX >= 8)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX + 2][currentFieldY])
+            } else {
+                if (currentFieldY >= 8)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 2])
+            }
+        }
+        if (this.shipCounter >= 9) {
+            // set 4 field ship
+            if (this.setShipHorizontal) {
+                if (currentFieldX >= 7)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX + 3][currentFieldY])
+            } else {
+                if (currentFieldY >= 7)
+                    return;
+                selectedFields.push(this.activePlayingField[currentFieldX][currentFieldY + 3])
+            }
+
+        }
+        selectedFields.forEach(function (field: Field) {
+            field.hasShip = true;
+        });
+
+        if (this.shipCounter >= 9) {
+            this.shipCounter = 0;
+            for (let i = 1; i < this.setShipMeshes.length; i++) {
+                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
+            }
+            return;
+        }
+        this.shipCounter++;
+    }
+
+    nextTurn() {
+        if (this.activePlayer == Players.Player1) {
+            this.activePlayer = Players.Player2;
+            this.activePlayingField = this.gamePhase == "setup" ? this.match.fieldPlayer2 : this.match.fieldPlayer1;
         } else {
-            this.activePlayer = this.player1;
-            this.activePlayingField = this.playingField1;
+            this.activePlayer = Players.Player1;
+            this.activePlayingField = this.gamePhase == "setup" ? this.match.fieldPlayer1 : this.match.fieldPlayer2;
 
             if (this.gamePhase == "setup") {
-                this.gamePhase = "ownturn";
+                this.gamePhase = "running";
             }
         }
         this.update();
@@ -240,29 +316,59 @@ class PlayingField extends GameObject {
     onIntersect(intersectPoint: THREE.Vector3) {
         super.onIntersect(intersectPoint);
         const highlightPos = intersectPoint.floor().addScalar(0.5);
+
         this.highlightMesh.position.set(highlightPos.x, 0, highlightPos.z);
+
+        if (this.gamePhase == "setup") {
+            if (this.shipCounter >= 4) {
+                (this.setShipMeshes[1].material as THREE.MeshBasicMaterial).visible = true;
+                if (this.setShipHorizontal) {
+                    this.setShipMeshes[1].position.set(highlightPos.x + 1, 0, highlightPos.z);
+                } else {
+                    this.setShipMeshes[1].position.set(highlightPos.x, 0, highlightPos.z + 1);
+                }
+            }
+            if (this.shipCounter >= 7) {
+                (this.setShipMeshes[2].material as THREE.MeshBasicMaterial).visible = true;
+                if (this.setShipHorizontal) {
+                    this.setShipMeshes[2].position.set(highlightPos.x + 2, 0, highlightPos.z);
+                } else {
+                    this.setShipMeshes[2].position.set(highlightPos.x, 0, highlightPos.z + 2);
+                }
+            }
+            if (this.shipCounter >= 9) {
+                (this.setShipMeshes[3].material as THREE.MeshBasicMaterial).visible = true;
+                if (this.setShipHorizontal) {
+                    this.setShipMeshes[3].position.set(highlightPos.x + 3, 0, highlightPos.z);
+                } else {
+                    this.setShipMeshes[3].position.set(highlightPos.x, 0, highlightPos.z + 3);
+                }
+            }
+            return;
+        }
     }
 
     onSelectStart() {
         super.onSelectStart();
         const highlightPos = this.getHighlightedGridPosition();
-        const currentField = this.activePlayingField[highlightPos[0]][highlightPos[1]];
 
         switch (this.gamePhase) {
             case "setup":
-                //TODO do ships instead of single fields
-                currentField.hasShip = !currentField.hasShip;
+                this.setShip(highlightPos[0], highlightPos[1]);
                 break;
-            case "ownturn":
-                if (!currentField.isHit) {
-                    currentField.isHit = true;
-                }
+            case "running":
+                this.match.hit(this.match.attacker, highlightPos[1], highlightPos[0])
                 break;
-            case "oppturn":
-                //can't interact
+            default:
                 break;
         }
         this.update()
+    }
+
+    onSqueezeStart() {
+        if (this.gamePhase == "setup") {
+            this.setShipHorizontal = !this.setShipHorizontal;
+        }
     }
 }
 
