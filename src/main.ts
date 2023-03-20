@@ -11,7 +11,8 @@ const gameObjects = [];
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-camera.position.set(0, 5, -15);
+let player = new THREE.Group();
+player.add(camera);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setClearColor("#0055ff");
@@ -44,9 +45,9 @@ scene.add(light);
 //  GameObjects
 //--------------------------------
 
-new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
+const game = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
-    new THREE.Vector3(0, 0, -3), scene, meshesInScene, gameObjects);
+    new THREE.Vector3(0, 2, -3), scene, meshesInScene, gameObjects);
 
 
 //</editor-fold>
@@ -92,12 +93,12 @@ function buildControllers() {
         controller.userData.squeezePressed = false;
         controller.userData.squeezePressedPrev = false;
         controller.userData.isActiveController = false;
-        scene.add(controller);
+        player.add(controller);
         controllers.push(controller);
 
         const grip = renderer.xr.getControllerGrip(i);
         grip.add(controllerModelFactory.createControllerModel(grip));
-        scene.add(grip);
+        player.add(grip);
     }
     return controllers;
 }
@@ -211,6 +212,8 @@ function handleController(controller) {
 }
 
 initVRControllers();
+player.position.set(0, 5, 15);
+scene.add(player);
 if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
