@@ -89,6 +89,8 @@ class PlayingField extends GameObject {
     private shipCounter = 0;
     private setShipHorizontal = true;
     private shipSize = 1;
+    public winner;
+    public finished = false;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -215,11 +217,13 @@ class PlayingField extends GameObject {
     private update() {
         //Check if match is over
         if (this.match.checkState() == GameState.GameOver) {
-            //TODO: do something cool
+            this.finished = true;
+            this.winner = this.match.winner;
+            console.log(this.winner + " won");
             return;
         }
         switch (this.gamePhase) {
-            //this is needed as long we only have on grid
+            //this is needed as long we only have one grid
             case "setup":
                 this.showOwnPlayingFieldStatus(this.activePlayingField);
                 break;
@@ -333,10 +337,11 @@ class PlayingField extends GameObject {
             this.activePlayingField = this.gamePhase == "setup" ? this.match.fieldPlayer2 : this.match.fieldPlayer1;
         } else {
             this.activePlayer = Players.Player1;
-            this.activePlayingField = this.gamePhase == "setup" ? this.match.fieldPlayer1 : this.match.fieldPlayer2;
+            this.activePlayingField = this.match.fieldPlayer2;
 
             if (this.gamePhase == "setup") {
                 this.gamePhase = "running";
+                (this.highlightMesh.material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
             }
         }
         this.update();
