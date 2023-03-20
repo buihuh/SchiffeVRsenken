@@ -6,9 +6,6 @@ import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-a
 import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
 import {firebaseConfig} from './firebase-config.js';
 import * as MATCH from './../game/match.js';
-import {Field} from "../game/field.js";
-import {Player} from "../game/player.js";
-import {Match} from './../game/match.js';
 
 
 // Somehow this is not working:
@@ -25,8 +22,8 @@ export class Firebase {
 
     protected app : any;
     protected analytics: any;
-    protected db : any;
-    gameId : number;
+    onlineId: number;
+    protected db: any;
 
     constructor() {
         // Initialize Firebase
@@ -36,20 +33,28 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
+        let shortId = Math.floor(Math.random() * (9999 - 1000) + 1000);
         const docRef = await addDoc(collection(this.db, 'matches'), {
             created: serverTimestamp(),
-            id: Math.floor(Math.random() * (9999 - 1000) + 1000),
+            id: shortId,
+            match: JSON.stringify(match),
+            player1Position: [0.0, 0.0, 0.0],
+            player1Rotation: [0.0, 0.0, 0.0],
+            player1ControllerLeftPosition: [0.0, 0.0, 0.0],
+            player1ControllerLeftRotation: [0.0, 0.0, 0.0],
+            player2Position: [0.0, 0.0, 0.0],
+            player2Rotation: [0.0, 0.0, 0.0],
+            player2ControllerLeftPosition: [0.0, 0.0, 0.0],
+            player2ControllerLeftRotation: [0.0, 0.0, 0.0]
             // state: 0,
             // player1: {id: match.player1.id, name: match.player1.name, winCounter: 0, isHost: true} as Player,
             // player2: {id: match.player2.id, name: match.player2.name, winCounter: 0, isHost: false} as Player,
-            match: JSON.stringify(match),
             // attacker: match.attacker
         });
-        this.gameId = docRef.id;
+        this.onlineId = docRef.id;
 
         // await this.createField(match.fieldPlayer1, 1);
         // await this.createField(match.fieldPlayer2, 2);
-
         // return docRef;
     }
 
