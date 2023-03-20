@@ -33,10 +33,9 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
-        let shortId = Math.floor(Math.random() * (9999 - 1000) + 1000);
-        const docRef = await addDoc(collection(this.db, 'matches'), {
+        let onlineId = Math.floor(Math.random() * (9999 - 1000) + 1000);
+        await setDoc(doc(this.db, 'matches', onlineId.toString()), {
             created: serverTimestamp(),
-            id: shortId,
             match: JSON.stringify(match),
             player1Position: [0.0, 0.0, 0.0],
             player1Rotation: [0.0, 0.0, 0.0],
@@ -56,7 +55,6 @@ export class Firebase {
             // player2: {id: match.player2.id, name: match.player2.name, winCounter: 0, isHost: false} as Player,
             // attacker: match.attacker
         });
-        this.onlineId = docRef.id;
 
         // await this.createField(match.fieldPlayer1, 1);
         // await this.createField(match.fieldPlayer2, 2);
