@@ -8,6 +8,7 @@ import {firebaseConfig} from './firebase-config.js';
 import * as MATCH from './../game/match.js';
 import {Field} from "../game/field.js";
 import {Player} from "../game/player.js";
+import {Match} from './../game/match.js';
 
 
 // Somehow this is not working:
@@ -25,7 +26,7 @@ export class Firebase {
     protected app : any;
     protected analytics: any;
     protected db : any;
-    gameid : number;
+    gameId : number;
 
     constructor() {
         // Initialize Firebase
@@ -35,105 +36,106 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
-        const docRef = await addDoc(collection(this.db, 'games'), {
+        const docRef = await addDoc(collection(this.db, 'matches'), {
             created: serverTimestamp(),
-            state: 0,
-            player1: {id: match.player1.id, name:match.player1.name},
-            player2: {id: match.player2.id, name:match.player2.name},
-            attacker: match.attacker
+            id: Math.floor(Math.random() * (9999 - 1000) + 1000),
+            // state: 0,
+            // player1: {id: match.player1.id, name: match.player1.name, winCounter: 0, isHost: true} as Player,
+            // player2: {id: match.player2.id, name: match.player2.name, winCounter: 0, isHost: false} as Player,
+            match: JSON.stringify(match),
+            // attacker: match.attacker
         });
-        this.gameid = docRef.id;
+        this.gameId = docRef.id;
 
-        await this.createField(match.fieldPlayer1, 1);
-        await this.createField(match.fieldPlayer2, 2);
+        // await this.createField(match.fieldPlayer1, 1);
+        // await this.createField(match.fieldPlayer2, 2);
 
         // return docRef;
     }
 
 
-    async createField(field: Field [][], player: number) {
+    // async createField(field: Field [][], player: number) {
+    //
+    //     for (let y: number = 0; y < field.length; y++) {
+    //         for (let x: number = 0; x < field.length; x++) {
+    //
+    //             const c = doc(this.db,
+    //                 'games',
+    //                 this.gameid,
+    //                 'fieldPlayer' + player,
+    //                 'x'+x+'y'+y)
+    //                 .withConverter(fieldConverter);
+    //             await setDoc(c, new Field(
+    //                     field[x][y].positionX,
+    //                     field[x][y].positionY,
+    //                     field[x][y].hasShip
+    //                 )
+    //             );
+    //         // .then(res => {
+    //         //         console.log('created playerfield ' +player)
+    //         //     }).catch(err => {
+    //         //         console.log('something went wrong '+ err)
+    //         //     })
+    //
+    //         }
+    //     }
+    // }
 
-        for (let y: number = 0; y < field.length; y++) {
-            for (let x: number = 0; x < field.length; x++) {
-
-                const c = doc(this.db,
-                    'games',
-                    this.gameid,
-                    'fieldPlayer' + player,
-                    'x'+x+'y'+y)
-                    .withConverter(fieldConverter);
-                await setDoc(c, new Field(
-                        field[x][y].positionX,
-                        field[x][y].positionY,
-                        field[x][y].hasShip
-                    )
-                );
-            // .then(res => {
-            //         console.log('created playerfield ' +player)
-            //     }).catch(err => {
-            //         console.log('something went wrong '+ err)
-            //     })
-
-            }
-        }
-    }
-
-    updateMatch(match: MATCH.Match) {
-        const docRef = doc(this.db, 'games', this.gameid);
-        updateDoc(docRef, {
-        });
-
-    }
+    // updateMatch(match: MATCH.Match) {
+    //     const docRef = doc(this.db, 'games', this.gameid);
+    //     updateDoc(docRef, {
+    //     });
+    // }
 
 
 }
 
-/*
-* TODO fix data types
-* */
-const matchConverter = {
-    toFirestore: (match) => {
-        return {
-            player1: match.player1.id,
-            player2: match.player2.id,
-            fieldPlayer1: match.fieldPlayer1,
-            fieldPlayer2: match.fieldPlayer2,
-            attacker: match.attacker
-        };
-    },
-    fromFirestore: (snapshot, options) => {
-        const data = snapshot.data(options);
-        return new MATCH.Match(data.player1, data.player2, data.attacker, data.fieldPlayer1, data.fieldPlayer2);
-    }
-};
+// /*
+// * TODO fix data types
+// * */
+// const matchConverter = {
+//     toFirestore: (match) => {
+//         return {
+//             player1: match.player1.id,
+//             player2: match.player2.id,
+//             // fieldPlayer1: match.fieldPlayer1,
+//             // fieldPlayer2: match.fieldPlayer2,
+//             attacker: match.attacker
+//         };
+//     },
+//     fromFirestore: (snapshot, options) => {
+//         const data = snapshot.data(options);
+//         return new MATCH.Match(data.player1, data.player2, data.attacker, data.fieldPlayer1, data.fieldPlayer2);
+//     }
+// };
 
 
-const fieldConverter = {
-    toFirestore: (field) => {
-        return {
-            x: field.positionX,
-            y: field.positionY,
-            hasShip: field.hasShip,
-            isHit: field.isHit
-        };
-    },
-    fromFirestore: (snapshot, options) => {
-        const data = snapshot.data(options);
-        return new Field(data.positionX, data.positionY, data.hasShip);
-    }
-};
+// const fieldConverter = {
+//     toFirestore: (field) => {
+//         return {
+//             x: field.positionX,
+//             y: field.positionY,
+//             hasShip: field.hasShip,
+//             isHit: field.isHit
+//         };
+//     },
+//     fromFirestore: (snapshot, options) => {
+//         const data = snapshot.data(options);
+//         return new Field(data.positionX, data.positionY, data.hasShip);
+//     }
+// };
 
-const playerConverter = {
-    toFirestore: (player) => {
-        return {
-            id: player.id,
-            name: player.name,
-            winCounter: player.winCounter,
-            isHost: player.isHost
-        };
-    },
-    fromFirestore: (snapshot, options) => {
-        const data = snapshot.data(options);
-        return new Player(data.id, data.name);
-    }
-};
+// const playerConverter = {
+//     toFirestore: (player) => {
+//         return {
+//             id: player.id,
+//             name: player.name,
+//             winCounter: player.winCounter,
+//             isHost: player.isHost
+//         };
+//     },
+//     fromFirestore: (snapshot, options) => {
+//         const data = snapshot.data(options);
+//         return new Player(data.id, data.name);
+//     }
+// };
