@@ -33,7 +33,7 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
-        let onlineId = '4219';
+        let onlineId = '0000';
             // Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
         await setDoc(doc(this.db, 'matches', onlineId), {
             created: serverTimestamp(),

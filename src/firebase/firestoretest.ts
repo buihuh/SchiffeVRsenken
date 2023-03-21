@@ -33,13 +33,13 @@ firebase.createGame(match)
 
 match.player1.name = "Daym";
 
-firebase.updateMatch('4219', match).then(res => {
+firebase.updateMatch('0000', match).then(res => {
     console.log('match updated')
 }).catch(err => {
     console.log('something went wrong '+ err)
 });
 
-firebase.listenMatch('4219');
+firebase.listenMatch('0000');
 /**
  * TODO end create game test
  */
