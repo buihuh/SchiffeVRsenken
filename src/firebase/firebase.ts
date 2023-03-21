@@ -61,26 +61,15 @@ export class Firebase {
         // return docRef;
     }
 
-    async updateMatch(match: MATCH.Match) {
-        // const collectionRef = this.db.collection('matches');
-        // const querySnapshot = await collectionRef.where('id', '==', 1234).get();
-        // querySnapshot.forEach((doc) => {
-        //     doc.ref.set({
-        //         match: JSON.stringify(match)
-        //     }, { merge: true })
-        // });
+    async updateMatch(id: String, match: MATCH.Match) {
 
-        const docRef = doc(this.db, 'matches', '4219');
-        const snap = await getDoc(docRef);
+        const docRef = doc(this.db, 'matches', id);
+        const docSnap = await getDoc(docRef);
 
-        if (snap.exists()) {
-            await updateDoc(snap,
-                { match: JSON.stringify(match)},
-                { merge: true }
-            );
-            // snap.update({
-            //     match: JSON.stringify(match)
-            // }, { merge: true });
+        if (docSnap.exists()) {
+            await updateDoc(docRef, {
+                match: JSON.stringify(match)
+            });
         }
         else {
             console.log("No such document")

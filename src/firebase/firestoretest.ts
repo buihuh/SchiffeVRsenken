@@ -1,4 +1,4 @@
-import * as FB from "./init.js";
+import * as FB from "./firebase.js";
 import {Player} from "../game/player.js";
 import {getStartedField, Match, Players} from "../game/match.js";
 
@@ -29,6 +29,14 @@ firebase.createGame(match)
     }).catch(err => {
         console.log('something went wrong '+ err)
     });
+
+match.player1.name = "Daym";
+
+firebase.updateMatch('4219', match).then(res => {
+    console.log('match updated')
+}).catch(err => {
+    console.log('something went wrong '+ err)
+});
 /**
  * TODO end create game test
  */
