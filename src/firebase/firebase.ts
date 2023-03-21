@@ -3,7 +3,7 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-
 // @ts-ignore
 import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js';
 // @ts-ignore
-import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
+import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc, getDoc} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
 import {firebaseConfig} from './firebase-config.js';
 import * as MATCH from './../game/match.js';
 
@@ -59,6 +59,33 @@ export class Firebase {
         // await this.createField(match.fieldPlayer1, 1);
         // await this.createField(match.fieldPlayer2, 2);
         // return docRef;
+    }
+
+    async updateMatch(match: MATCH.Match) {
+        // const collectionRef = this.db.collection('matches');
+        // const querySnapshot = await collectionRef.where('id', '==', 1234).get();
+        // querySnapshot.forEach((doc) => {
+        //     doc.ref.set({
+        //         match: JSON.stringify(match)
+        //     }, { merge: true })
+        // });
+
+        const docRef = doc(this.db, 'matches', '4219');
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+            await updateDoc(snap,
+                { match: JSON.stringify(match)},
+                { merge: true }
+            );
+            // snap.update({
+            //     match: JSON.stringify(match)
+            // }, { merge: true });
+        }
+        else {
+            console.log("No such document")
+        }
+
     }
 
 
