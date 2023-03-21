@@ -45,9 +45,13 @@ scene.add(light);
 //  GameObjects
 //--------------------------------
 
-const game = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
-    new THREE.Vector3(0, 2, -3), scene, meshesInScene, gameObjects);
+const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0xFF3232}),
+    new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
+
+const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0x3232FF}),
+    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
 
 //</editor-fold>
@@ -227,9 +231,22 @@ renderer.setAnimationLoop(function () {
         });
     }
 
-    scene.remove(text.planeMesh);
+    if (hostTrigger.playingField) {
+        hostTrigger.playingField.update();
+        if (guestTrigger)
+            (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+    }
+
+    if (guestTrigger.playingField) {
+        guestTrigger.playingField.update();
+
+        if (hostTrigger)
+            (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+    }
+
+    /*scene.remove(text.planeMesh);
     text.refreshText();
-    scene.add(text.planeMesh);
+    scene.add(text.planeMesh);*/
 
     //Cube rotation
     // mesh.rotation.y += 0.01;

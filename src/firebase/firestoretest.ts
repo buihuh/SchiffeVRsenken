@@ -28,18 +28,18 @@ firebase.createGame(match)
         console.log('match created')
         firebase.joinMatch(res);
     }).catch(err => {
-        console.log('something went wrong '+ err)
-    });
+    console.log('something went wrong ' + err)
+});
 
 match.player1.name = "Daym";
 
 firebase.updateMatch('0000', match).then(res => {
     console.log('match updated')
 }).catch(err => {
-    console.log('something went wrong '+ err)
+    console.log('something went wrong ' + err)
 });
 
-firebase.listenMatch('0000');
+// firebase.listenMatch('0000');
 /**
  * TODO end create game test
  */
