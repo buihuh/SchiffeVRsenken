@@ -91,6 +91,7 @@ class PlayingField extends GameObject {
     private setShipHorizontal = true;
     private shipSize = 1;
     private firebase;
+    private setupField: Field[][];
     public winner;
     public finished = false;
 
@@ -170,6 +171,7 @@ class PlayingField extends GameObject {
         let playingField1 = getStartedField();
         let playingField2 = getStartedField();
 
+        this.setupField = getStartedField();
         this.gamePhase = "setup"
         this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
         if (host) {
@@ -247,6 +249,14 @@ class PlayingField extends GameObject {
         }
         //Check if players have set up
         if (this.gamePhase == "setup" && this.match.player1Ready && this.match.player2Ready) {
+            switch (this.activePlayer) {
+                case Players.Player1:
+                    this.match.fieldPlayer1 = this.setupField;
+                    break;
+                case Players.Player2:
+                    this.match.fieldPlayer2 = this.setupField;
+                    break;
+            }
             this.gamePhase = "running";
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
@@ -257,7 +267,7 @@ class PlayingField extends GameObject {
         switch (this.gamePhase) {
             //this is needed as long we only have one grid
             case "setup":
-                this.showOwnPlayingFieldStatus(this.getOwnPlayingField());
+                this.showOwnPlayingFieldStatus(this.setupField);
                 break;
             case "running":
                 if (this.match.attacker == this.activePlayer) {
@@ -458,7 +468,7 @@ class PlayingField extends GameObject {
 
         switch (this.gamePhase) {
             case "setup":
-                this.setShip(highlightPos[0], highlightPos[1], this.getOwnPlayingField());
+                this.setShip(highlightPos[0], highlightPos[1], this.setupField);
                 break;
             case "running":
                 if (this.activePlayer == this.match.attacker) {
