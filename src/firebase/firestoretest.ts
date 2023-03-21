@@ -26,6 +26,7 @@ const firebase = new FB.Firebase();
 firebase.createGame(match)
     .then(res => {
         console.log('match created')
+        firebase.joinMatch(res);
     }).catch(err => {
         console.log('something went wrong '+ err)
     });

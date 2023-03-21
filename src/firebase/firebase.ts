@@ -23,7 +23,7 @@ export class Firebase {
     protected app : any;
     protected analytics: any;
     onlineId: number;
-    protected db: any;
+    protected db;
 
     constructor() {
         // Initialize Firebase
@@ -33,8 +33,8 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
-        let onlineId = Math.floor(Math.random() * (9999 - 1000) + 1000);
-        await setDoc(doc(this.db, 'matches', onlineId.toString()), {
+        let onlineId = Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
+        await setDoc(doc(this.db, 'matches', onlineId), {
             created: serverTimestamp(),
             match: JSON.stringify(match),
             player1Position: [0.0, 0.0, 0.0],
@@ -50,116 +50,39 @@ export class Firebase {
             player2ControllerLeftRotation: [0.0, 0.0, 0.0],
             player2ControllerRightPosition: [0.0, 0.0, 0.0],
             player2ControllerRightRotation: [0.0, 0.0, 0.0],
-            // state: 0,
-            // player1: {id: match.player1.id, name: match.player1.name, winCounter: 0, isHost: true} as Player,
-            // player2: {id: match.player2.id, name: match.player2.name, winCounter: 0, isHost: false} as Player,
-            // attacker: match.attacker
         });
-
-        // await this.createField(match.fieldPlayer1, 1);
-        // await this.createField(match.fieldPlayer2, 2);
-        // return docRef;
+        return onlineId;
     }
 
     async updateMatch(id: String, match: MATCH.Match) {
-
         const docRef = doc(this.db, 'matches', id);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data());
             await updateDoc(docRef, {
                 match: JSON.stringify(match)
             });
-        }
-        else {
+        } else {
             console.log("No such document")
         }
 
+        this.db.ref()
+
     }
 
+    async joinMatch(onlineId) {
+        console.log(onlineId)
+        const docRef = doc(this.db, "matches",  onlineId.toString());
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data());
+        } else {
+            console.log("No such document!");
+        }
+        return docSnap.data();
+    }
 
-    // async createField(field: Field [][], player: number) {
-    //
-    //     for (let y: number = 0; y < field.length; y++) {
-    //         for (let x: number = 0; x < field.length; x++) {
-    //
-    //             const c = doc(this.db,
-    //                 'games',
-    //                 this.gameid,
-    //                 'fieldPlayer' + player,
-    //                 'x'+x+'y'+y)
-    //                 .withConverter(fieldConverter);
-    //             await setDoc(c, new Field(
-    //                     field[x][y].positionX,
-    //                     field[x][y].positionY,
-    //                     field[x][y].hasShip
-    //                 )
-    //             );
-    //         // .then(res => {
-    //         //         console.log('created playerfield ' +player)
-    //         //     }).catch(err => {
-    //         //         console.log('something went wrong '+ err)
-    //         //     })
-    //
-    //         }
-    //     }
-    // }
-
-    // updateMatch(match: MATCH.Match) {
-    //     const docRef = doc(this.db, 'games', this.gameid);
-    //     updateDoc(docRef, {
-    //     });
-    // }
-
-
+    async listenMatch(onlineId) {
+       // here
+    }
 }
-
-// /*
-// * TODO fix data types
-// * */
-// const matchConverter = {
-//     toFirestore: (match) => {
-//         return {
-//             player1: match.player1.id,
-//             player2: match.player2.id,
-//             // fieldPlayer1: match.fieldPlayer1,
-//             // fieldPlayer2: match.fieldPlayer2,
-//             attacker: match.attacker
-//         };
-//     },
-//     fromFirestore: (snapshot, options) => {
-//         const data = snapshot.data(options);
-//         return new MATCH.Match(data.player1, data.player2, data.attacker, data.fieldPlayer1, data.fieldPlayer2);
-//     }
-// };
-
-
-// const fieldConverter = {
-//     toFirestore: (field) => {
-//         return {
-//             x: field.positionX,
-//             y: field.positionY,
-//             hasShip: field.hasShip,
-//             isHit: field.isHit
-//         };
-//     },
-//     fromFirestore: (snapshot, options) => {
-//         const data = snapshot.data(options);
-//         return new Field(data.positionX, data.positionY, data.hasShip);
-//     }
-// };
-
-// const playerConverter = {
-//     toFirestore: (player) => {
-//         return {
-//             id: player.id,
-//             name: player.name,
-//             winCounter: player.winCounter,
-//             isHost: player.isHost
-//         };
-//     },
-//     fromFirestore: (snapshot, options) => {
-//         const data = snapshot.data(options);
-//         return new Player(data.id, data.name);
-//     }
-// };
