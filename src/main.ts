@@ -78,32 +78,87 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
 const gltfLoader = new GLTFLoader();
 const url = './resources/models/boat.gltf';
+const boat = new THREE.Object3D();
 
 // Load a glTF resource
 gltfLoader.load(
-    // resource URL
     url,
-    // called when the resource is loaded
     function ( gltf ) {
-        const root = gltf.scene;
-        scene.add(root);
+        boat.add(gltf.scene);
+        scene.add(boat);
     },
-    // called while loading is progressing
     function ( xhr ) {
-
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
     },
-    // called when loading has errors
     function ( error ) {
-
         console.log( 'An error happened' + error.message);
-
     }
 );
 
 /*
  * TODO: end test load model
+ */
+
+
+/*
+ * TODO: start test load player model
+ */
+const geometry = new THREE.SphereGeometry( 0.5, 32, 16 );
+const material = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)});
+const sphere = new THREE.Mesh( geometry, material );
+sphere.position.set(camera.position.x, camera.position.y, camera.position.z+10);
+scene.add( sphere );
+
+const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
+const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
+
+gltfLoader.load(
+    urlhand_r,
+    function ( gltf ) {
+        let hand_r = gltf.scene;
+
+        // @ts-ignore
+        hand_r.traverse((child, i) => {
+            if (child.isMesh) {
+                child.material = material;
+            }
+        });
+        hand_r.scale.set(0.05, 0.05, 0.05)
+        hand_r.position.set(camera.position.x-2, camera.position.y-2, camera.position.z+10);
+        scene.add(hand_r);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
+    },
+    function ( error ) {
+        console.log( 'An error happened' + error.message);
+    }
+);
+
+gltfLoader.load(
+    urlhand_l,
+    function ( gltf ) {
+        let hand_l = gltf.scene;
+        // @ts-ignore
+        hand_l.traverse((child, i) => {
+            if (child.isMesh) {
+                child.material = material;
+            }
+        });
+        hand_l.scale.set(0.05, 0.05, 0.05)
+        hand_l.position.set(camera.position.x+2, camera.position.y-2, camera.position.z+10);
+        scene.add(hand_l);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
+    },
+    function ( error ) {
+        console.log( 'An error happened' + error.message);
+    }
+);
+
+/*
+ * TODO: end test load player model
  */
 
 //VR-Controllers
