@@ -197,9 +197,15 @@ class PlayingField extends GameObject {
                 const statusMesh = this.fieldStatusMeshes[j][i];
                 const material = statusMesh.material as THREE.MeshBasicMaterial;
                 if (playingField[i][j].hasShip) {
-                    material.color.setHex(0x00FF00);
+                    if (playingField[i][j].isHit)
+                        material.color.setHex(0xFF0000);
+                    else
+                        material.color.setHex(0x00FF00);
                 } else {
-                    material.color.setHex(0xFFFFFF);
+                    if (playingField[i][j].isHit)
+                        material.color.setHex(0x0000FF);
+                    else
+                        material.color.setHex(0xFFFFFF);
                 }
                 statusMesh.material;
             }
@@ -242,6 +248,9 @@ class PlayingField extends GameObject {
         //Check if players have set up
         if (this.gamePhase == "setup" && this.match.player1Ready && this.match.player2Ready) {
             this.gamePhase = "running";
+            for (let i = 1; i < this.setShipMeshes.length; i++) {
+                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
+            }
             (this.highlightMesh.material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
         }
 
@@ -364,9 +373,6 @@ class PlayingField extends GameObject {
         this.shipCounter++;
 
         if (this.shipCounter > 9) {
-            for (let i = 0; i < 4; i++) {
-                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
-            }
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
