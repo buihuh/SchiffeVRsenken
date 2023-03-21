@@ -84,7 +84,10 @@ function buildControllers() {
         new THREE.Vector3(0, 0, -1)
     ]);
 
-    const line = new THREE.Line(geometry);
+    const material = new THREE.LineBasicMaterial({
+        color: "#ff4c7c"
+    });
+    const line = new THREE.Line(geometry, material);
     line.scale.z = 0;
 
     const controllers = [];
