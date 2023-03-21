@@ -3,7 +3,7 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-
 // @ts-ignore
 import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js';
 // @ts-ignore
-import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc, getDoc} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
+import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc, getDoc, onSnapshot} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
 import {firebaseConfig} from './firebase-config.js';
 import * as MATCH from './../game/match.js';
 
@@ -33,7 +33,8 @@ export class Firebase {
     }
 
     async createGame(match: MATCH.Match) {
-        let onlineId = Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
+        let onlineId = '4219';
+            // Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
         await setDoc(doc(this.db, 'matches', onlineId), {
             created: serverTimestamp(),
             match: JSON.stringify(match),
@@ -65,9 +66,6 @@ export class Firebase {
         } else {
             console.log("No such document")
         }
-
-        this.db.ref()
-
     }
 
     async joinMatch(onlineId) {
@@ -83,6 +81,10 @@ export class Firebase {
     }
 
     async listenMatch(onlineId) {
-       // here
+        const unsub = onSnapshot(doc(this.db, "matches", onlineId.toString()), (doc) => {
+            console.log("Current data: ", doc.data());
+        });
+
+        console.log(doc);
     }
 }

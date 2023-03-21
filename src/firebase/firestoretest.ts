@@ -38,6 +38,8 @@ firebase.updateMatch('4219', match).then(res => {
 }).catch(err => {
     console.log('something went wrong '+ err)
 });
+
+firebase.listenMatch('4219');
 /**
  * TODO end create game test
  */
