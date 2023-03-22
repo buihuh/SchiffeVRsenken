@@ -258,6 +258,7 @@ class PlayingField extends GameObject {
                     break;
             }
             this.gamePhase = "running";
+            this.highlightMesh.visible = true;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
@@ -384,6 +385,7 @@ class PlayingField extends GameObject {
 
         if (this.shipCounter > 9) {
             this.shipSize = 0;
+            this.highlightMesh.visible = false; // temporary disable visibility
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
