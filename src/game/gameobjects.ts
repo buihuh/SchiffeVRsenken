@@ -404,7 +404,12 @@ class PlayingField extends GameObject {
 
     nextTurn() {
         this.match.nextRound();
-        console.log(this.match.attacker + "'s turn!")
+
+        console.log("Player 1 Field");
+        this.match.printField(this.match.fieldPlayer1);
+        console.log("Player 2 Field");
+        this.match.printField(this.match.fieldPlayer2);
+        console.log(this.match.attacker + "'s turn!");
     }
 
     onFocus() {

@@ -21,7 +21,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.update();
 
-
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
 
@@ -219,7 +218,7 @@ function handleController(controller) {
 }
 
 initVRControllers();
-player.position.set(0, 5, 15);
+player.position.set(0, 2, 7);
 scene.add(player);
 if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
