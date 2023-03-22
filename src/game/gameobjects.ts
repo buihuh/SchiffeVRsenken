@@ -507,15 +507,15 @@ class PlayingField extends GameObject {
 
         if(head) {
             head.position.set(enemy.position[0], enemy.position[1] + 5, enemy.position[2] - 10);
-            head.rotation.set(enemy.rotation[0], enemy.rotation[1], enemy.rotation[2]);
+            head.rotation.set(-enemy.rotation[0], enemy.rotation[1], -enemy.rotation[2]);
         }
         if(handL) {
             handL.position.set(enemy.controllerLeftPosition[0] + 2, enemy.controllerLeftPosition[1] + 3, enemy.controllerLeftPosition[2] - 10);
-            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], enemy.controllerLeftRotation[2]);
+            handL.rotation.set(-enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], -enemy.controllerLeftRotation[2]);
         }
         if(handR) {
             handR.position.set(enemy.controllerRightPosition[0] - 2, enemy.controllerRightPosition[1] + 3, enemy.controllerRightPosition[2] - 10);
-            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], enemy.controllerRightRotation[2]);
+            handR.rotation.set(-enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], -enemy.controllerRightRotation[2]);
         }
     }
 
