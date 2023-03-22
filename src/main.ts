@@ -5,7 +5,7 @@ import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
-import {Text3D} from './game/text3D';
+import {Text3D} from './game/text3D.js';
 
 const scene = new THREE.Scene();
 const meshesInScene = [];

@@ -1,5 +1,5 @@
 import {Player} from "./player";
-import {GameState, getStartedField, Match, Players} from "./match";
+import {GameState, getStartedField, Match, Players} from "./match.js";
 
 const player1 = new Player(1, "Max", 0, true);
 console.log(player1);
