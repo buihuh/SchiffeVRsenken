@@ -3,7 +3,9 @@ import {XRControllerModelFactory} from 'three/examples/jsm/webxr/XRControllerMod
 import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import * as TextTest from './game/text.js';
+import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
+import {Text3D} from './game/text3D';
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -48,21 +50,42 @@ const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: 0xFF3232}),
     new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
 
-const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0x3232FF}),
-    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
+const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({color: 0x3232FF}), new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
 
 //</editor-fold>
 
 /**
- * TODO: start Test Text
+ * TODO: start Title
  */
 
-const text = new TextTest.TextTest("This is a test!");
+
+const loader = new FontLoader();
+let text3D;
+loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const geometry = new TextGeometry("this.text" + " " + "this.counter", {
+        font: font,
+        size: 1,
+        height: 0.1,
+        curveSegments: 10,
+        bevelEnabled: true,
+        bevelThickness: 0.02,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 5
+    });
+    geometry.center();
+    const material = new THREE.MeshPhongMaterial({
+        color: '#dbe4eb', specular: '#dbe4eb'
+    });
+    // let  mesh = new THREE.Mesh(geometry, material);
+    // mesh.name = "title";
+
+    text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
+});
 
 /**
- * TODO: end Test Text
+ * TODO: end Title
  */
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
@@ -235,31 +258,32 @@ renderer.setAnimationLoop(function () {
 
     if (hostTrigger.playingField) {
         hostTrigger.playingField.update();
-        if (guestTrigger)
+        if (guestTrigger) {
             (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+        }
     }
 
     if (guestTrigger.playingField) {
         guestTrigger.playingField.update();
-
-        if (hostTrigger)
+        if (hostTrigger) {
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+        }
     }
 
-    /*scene.remove(text.planeMesh);
-    text.refreshText();
-    scene.add(text.planeMesh);*/
+    // let titleMesh = scene.getObjectByName("title");
+    // if (titleMesh) {
+    //     titleMesh.rotation.y += 0.005;
+    // }
 
-    //Cube rotation
-    // mesh.rotation.y += 0.01;
+    // if (text3D) {
+    //     text3D.rotation.y += 0.005;
+    // }
+
     renderer.render(scene, camera);
 });
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-
-    // mesh.rotation.y += 0.01;
-
     renderer.render(scene, camera);
 };
 
