@@ -326,6 +326,7 @@ class PlayingField extends GameObject {
                     break;
             }
             this.gamePhase = "running";
+            this.highlightMesh.visible = true;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
@@ -451,6 +452,8 @@ class PlayingField extends GameObject {
         this.shipCounter++;
 
         if (this.shipCounter > 9) {
+            this.shipSize = 0;
+            this.highlightMesh.visible = false; // temporary disable visibility
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
@@ -472,7 +475,12 @@ class PlayingField extends GameObject {
 
     nextTurn() {
         this.match.nextRound();
-        console.log(this.match.attacker + "'s turn!")
+
+        console.log("Player 1 Field");
+        this.match.printField(this.match.fieldPlayer1);
+        console.log("Player 2 Field");
+        this.match.printField(this.match.fieldPlayer2);
+        console.log(this.match.attacker + "'s turn!");
     }
 
     updatePlayerData(vrControllers: any, camera: THREE.PerspectiveCamera) {

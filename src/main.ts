@@ -22,7 +22,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.update();
 
-
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
 
@@ -190,10 +189,10 @@ function handleController(controller) {
     controller.children[0].scale.z = 10;
     const rotationMatrix = new THREE.Matrix4();
     rotationMatrix.extractRotation(controller.matrixWorld);
-    const raycaster = new THREE.Raycaster();
-    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
-    const intersects = raycaster.intersectObjects(meshesInScene);
+    const rayCaster = new THREE.Raycaster();
+    rayCaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+    rayCaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
+    const intersects = rayCaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
@@ -249,7 +248,7 @@ function handleController(controller) {
 }
 
 initVRControllers();
-player.position.set(0, 5, 15);
+player.position.set(0, 2, 7);
 scene.add(player);
 if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
