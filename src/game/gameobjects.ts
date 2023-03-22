@@ -513,17 +513,29 @@ class PlayingField extends GameObject {
         let handL = this.scene.getObjectByName('playerHandL');
         let handR = this.scene.getObjectByName('playerHandR');
 
+        // if(head) {
+        //     head.position.set(-enemy.position[0], enemy.position[1], -enemy.position[2] - 10);
+        //     head.rotation.set(-enemy.rotation[0], enemy.rotation[1], -enemy.rotation[2]);
+        // }
+        // if(handL) {
+        //     handL.position.set(-enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], -enemy.controllerLeftPosition[2] - 10);
+        //     handL.rotation.set(-enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], -enemy.controllerLeftRotation[2]);
+        // }
+        // if(handR) {
+        //     handR.position.set(-enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], -enemy.controllerRightPosition[2] - 10);
+        //     handR.rotation.set(-enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], -enemy.controllerRightRotation[2]);
+        // }
         if(head) {
-            head.position.set(-enemy.position[0], enemy.position[1], -enemy.position[2] - 10);
-            head.rotation.set(-enemy.rotation[0], enemy.rotation[1], -enemy.rotation[2]);
+            head.position.set(enemy.position[0], enemy.position[1], -enemy.position[2]);
+            head.rotation.set(enemy.rotation[0], enemy.rotation[1], enemy.rotation[2]);
         }
         if(handL) {
-            handL.position.set(-enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], -enemy.controllerLeftPosition[2] - 10);
-            handL.rotation.set(-enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], -enemy.controllerLeftRotation[2]);
+            handL.position.set(enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], enemy.controllerLeftPosition[2]);
+            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], enemy.controllerLeftRotation[2]);
         }
         if(handR) {
-            handR.position.set(-enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], -enemy.controllerRightPosition[2] - 10);
-            handR.rotation.set(-enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], -enemy.controllerRightRotation[2]);
+            handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], enemy.controllerRightRotation[2]);
         }
     }
 
