@@ -105,66 +105,6 @@ gltfLoader.load(
  */
 
 
-/*
- * TODO: start test load player model
- */
-const geometry = new THREE.SphereGeometry( 0.5, 32, 16 );
-const material = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)});
-const sphere = new THREE.Mesh( geometry, material );
-sphere.position.set(camera.position.x, camera.position.y, camera.position.z+10);
-scene.add( sphere );
-
-const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
-const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
-
-gltfLoader.load(
-    urlhand_r,
-    function ( gltf ) {
-        let hand_r = gltf.scene;
-
-        // @ts-ignore
-        hand_r.traverse((child, i) => {
-            if (child.isMesh) {
-                child.material = material;
-            }
-        });
-        hand_r.scale.set(0.05, 0.05, 0.05)
-        hand_r.position.set(camera.position.x-2, camera.position.y-2, camera.position.z+10);
-        scene.add(hand_r);
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
-    },
-    function ( error ) {
-        console.log( 'An error happened' + error.message);
-    }
-);
-
-gltfLoader.load(
-    urlhand_l,
-    function ( gltf ) {
-        let hand_l = gltf.scene;
-        // @ts-ignore
-        hand_l.traverse((child, i) => {
-            if (child.isMesh) {
-                child.material = material;
-            }
-        });
-        hand_l.scale.set(0.05, 0.05, 0.05)
-        hand_l.position.set(camera.position.x+2, camera.position.y-2, camera.position.z+10);
-        scene.add(hand_l);
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
-    },
-    function ( error ) {
-        console.log( 'An error happened' + error.message);
-    }
-);
-
-/*
- * TODO: end test load player model
- */
 
 //VR-Controllers
 function buildControllers() {
@@ -315,6 +255,7 @@ if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
+let framecount = 0;
 //VR animation loop
 renderer.setAnimationLoop(function () {
     //Handle Controllers
@@ -326,13 +267,18 @@ renderer.setAnimationLoop(function () {
 
     if (hostTrigger.playingField) {
         hostTrigger.playingField.update();
+        if(framecount % 10 == 0) {
+            hostTrigger.playingField.updatePlayerData(vrControllers, camera);
+        }
         if (guestTrigger)
             (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
 
     if (guestTrigger.playingField) {
         guestTrigger.playingField.update();
-
+        if(framecount % 10 == 0) {
+            guestTrigger.playingField.updatePlayerData(vrControllers, camera);
+        }
         if (hostTrigger)
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
@@ -344,6 +290,8 @@ renderer.setAnimationLoop(function () {
     //Cube rotation
     // mesh.rotation.y += 0.01;
     renderer.render(scene, camera);
+
+    framecount++;
 });
 //Browser animation loop
 const render = function () {
