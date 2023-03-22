@@ -383,6 +383,7 @@ class PlayingField extends GameObject {
         this.shipCounter++;
 
         if (this.shipCounter > 9) {
+            this.shipSize = 0;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
