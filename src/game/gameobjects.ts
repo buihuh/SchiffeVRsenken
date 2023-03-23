@@ -112,6 +112,7 @@ export class PlayingField extends GameObject {
             new THREE.SphereGeometry(0.4, 4, 2),
             new THREE.MeshBasicMaterial({
                 wireframe: true,
+                wireframeLinewidth: 3,
                 color: 0xFFEA00
             })
         );
@@ -125,6 +126,7 @@ export class PlayingField extends GameObject {
                 new THREE.SphereGeometry(0.4, 4, 2),
                 new THREE.MeshBasicMaterial({
                     wireframe: true,
+                    wireframeLinewidth: 3,
                     color: 0xFFEA00,
                     visible: false
                 })
@@ -161,6 +163,7 @@ export class PlayingField extends GameObject {
             new THREE.SphereGeometry(0.4, 4, 2),
             new THREE.MeshBasicMaterial({
                 wireframe: true,
+                wireframeLinewidth: 3,
                 color: 0xFFEA00
             })
         );
