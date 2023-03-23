@@ -150,7 +150,7 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 const gltfLoader = new GLTFLoader();
 const url = './resources/models/boat.gltf';
 const boat = new THREE.Object3D();
-boat.position.set(0,3.5,0)
+boat.position.set(0,3.85,0)
 
 // Load a glTF resource
 gltfLoader.load(
