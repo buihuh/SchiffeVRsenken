@@ -27,7 +27,6 @@ export class Text3D extends GameObject {
 
             this.started = true;
         }
-
     }
 
 

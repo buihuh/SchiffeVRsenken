@@ -59,32 +59,35 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1), new T
  * TODO: start Title
  */
 
+loadTitle();
 
-const loader = new FontLoader();
-let text3D;
-loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-    const geometry = new TextGeometry("SchiffeVRsenken", {
-        font: font,
-        size: 1,
-        height: 0.2,
-        curveSegments: 10,
-        bevelEnabled: true,
-        bevelThickness: 0.02,
-        bevelSize: 0.02,
-        bevelOffset: 0,
-        bevelSegments: 5
-    });
-    geometry.center();
-    geometry.computeBoundingBox();
-    const material = new THREE.MeshPhongMaterial({
-        color: '#dbe4eb', specular: '#dbe4eb'
-    });
-    // let  mesh = new THREE.Mesh(geometry, material);
-    // mesh.name = "title";
+function loadTitle() {
+    const loader = new FontLoader();
+    let text3D;
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+        const geometry = new TextGeometry("SchiffeVRsenken", {
+            font: font,
+            size: 1,
+            height: 0.2,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0.02,
+            bevelSize: 0.02,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
+        geometry.center();
+        geometry.computeBoundingBox();
+        const material = new THREE.MeshPhongMaterial({
+            color: '#dbe4eb', specular: '#dbe4eb'
+        });
+        // let  mesh = new THREE.Mesh(geometry, material);
+        // mesh.name = "title";
 
-    text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
-    text3D.font = font;
-});
+        text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
+        text3D.font = font;
+    });
+}
 
 /**
  * TODO: end Title
