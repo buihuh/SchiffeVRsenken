@@ -4,10 +4,12 @@ import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
-import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
+const gameTitleText = "SchiffeVRsenken".toUpperCase();
+const createGameText = "Create Game".toUpperCase();
+const joinGameText = "Join Game".toUpperCase();
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -38,7 +40,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-const light = new THREE.PointLight(0xFFFFFF, 1, 500);
+const light = new THREE.DirectionalLight(0xFFFFFF, 0.9);
 light.position.set(10, 10, 10);
 
 scene.add(light);
@@ -58,17 +60,16 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
 
 //</editor-fold>
 
-loadTitle();
-
 /**
- * TODO: start Title
+ * Start Title
  */
+
+loadTextObjects();
 
 let centerText: Text3D;
 let leftText: Text3D;
 let rightText: Text3D;
 
-let switcher = true;
 function textCallback() {
     console.log("1");
 }
@@ -76,19 +77,19 @@ function textCallback2() {
     console.log("2");
 }
 
-function loadTitle() {
+function loadTextObjects() {
     const loader = new FontLoader();
     loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        centerText = new Text3D(new THREE.Vector3(0, 4, 0), scene, meshesInScene, gameObjects, "CENTER", font, null, textCallback);
+        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, null, textCallback);
         let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
         let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
-        leftText = new Text3D(new THREE.Vector3(-5, 4, 0), scene, meshesInScene, gameObjects, "LEFT", font, rotationLeft);
-        rightText = new Text3D(new THREE.Vector3(5, 4, 0), scene, meshesInScene, gameObjects, "RIGHT", font, rotationRight);
+        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font, rotationLeft);
+        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font, rotationRight);
     });
 }
 
 /**
- * TODO: end Title
+ * End Title
  */
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
