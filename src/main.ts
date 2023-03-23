@@ -3,8 +3,11 @@ import {XRControllerModelFactory} from 'three/examples/jsm/webxr/XRControllerMod
 import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import * as TextTest from './game/text.js';
+import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
+import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -57,13 +60,41 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
 //</editor-fold>
 
 /**
- * TODO: start Test Text
+ * TODO: start Title
  */
 
-const text = new TextTest.TextTest("This is a test!");
+loadTitle();
+
+function loadTitle() {
+    const loader = new FontLoader();
+    let text3D;
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+        const geometry = new TextGeometry("SchiffeVRsenken", {
+            font: font,
+            size: 1,
+            height: 0.2,
+            curveSegments: 10,
+            bevelEnabled: true,
+            bevelThickness: 0.02,
+            bevelSize: 0.02,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
+        geometry.center();
+        geometry.computeBoundingBox();
+        const material = new THREE.MeshPhongMaterial({
+            color: '#dbe4eb', specular: '#dbe4eb'
+        });
+        // let  mesh = new THREE.Mesh(geometry, material);
+        // mesh.name = "title";
+
+        text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
+        text3D.font = font;
+    });
+}
 
 /**
- * TODO: end Test Text
+ * TODO: end Title
  */
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
@@ -102,8 +133,6 @@ gltfLoader.load(
 /*
  * TODO: end test load model
  */
-
-
 
 //VR-Controllers
 function buildControllers() {
@@ -282,12 +311,6 @@ renderer.setAnimationLoop(function () {
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
 
-    /*scene.remove(text.planeMesh);
-    text.refreshText();
-    scene.add(text.planeMesh);*/
-
-    //Cube rotation
-    // mesh.rotation.y += 0.01;
     renderer.render(scene, camera);
 
     framecount++;
