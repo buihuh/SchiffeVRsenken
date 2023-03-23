@@ -178,38 +178,7 @@ export class PlayingField extends GameObject {
             })
         );
 
-        this.firebase = new FB.Firebase();
-
-        //Game Setup
-        let player1 = new Player(0, "Max");
-        let player2 = new Player(1, "Moritz");
-
-        let playingField1 = getStartedField();
-        let playingField2 = getStartedField();
-
-        this.setupField = getStartedField();
-        this.gamePhase = "setup"
-        this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
-        if (host) {
-            this.activePlayer = Players.Player1;
-            player1.isHost = true;
-            this.firebase.createGame(this.match)
-                .then(res => {
-                    console.log('match created')
-                    this.firebase.listenMatch(res, this.match);
-                }).catch(err => {
-                console.log('something went wrong ' + err)
-            });
-            console.log("Player 1 initialized");
-        } else {
-            this.activePlayer = Players.Player2;
-            this.firebase.listenMatch(matchID, this.match);
-            console.log("Player 2 initialized");
-        }
-
-
         modelLoader.loadEnemy();
-
     }
 
     startMatch(matchID: string, host: boolean = true) {
@@ -527,7 +496,7 @@ export class PlayingField extends GameObject {
         }
         if (handR) {
             handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
-            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1]+Math.PI, enemy.controllerRightRotation[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1] + Math.PI, enemy.controllerRightRotation[2]);
         }
     }
 
@@ -615,80 +584,5 @@ export class PlayingField extends GameObject {
         if (this.gamePhase == "setup") {
             this.setShipHorizontal = !this.setShipHorizontal;
         }
-    }
-}
-
-export class GameTrigger extends GameObject {
-    started = false;
-    playingField;
-
-    onSelectStart() {
-        if (!this.started) {
-            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList, this.objectList, "");
-            this.started = true;
-            return;
-        }
-
-        this.playingField.nextTurn();
-    }
-
-    onFocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color = new THREE.Color(255, 255, 0);
-    }
-
-    onUnfocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color = new THREE.Color(255, 0, 0);
-    }
-}
-
-export class HostTrigger extends GameObject {
-    started = false;
-    playingField: PlayingField;
-
-    onSelectStart() {
-        if (!this.started) {
-            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList,
-                this.objectList, '0000');
-            this.started = true;
-            const material = this.mesh.material as THREE.MeshLambertMaterial;
-            material.visible = false;
-        }
-    }
-
-    onFocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color = new THREE.Color(255, 0, 0);
-    }
-
-    onUnfocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color.setHex(0xFF3232);
-    }
-}
-
-export class GuestTrigger extends GameObject {
-    started = false;
-    playingField: PlayingField;
-
-    onSelectStart() {
-        if (!this.started) {
-            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList,
-                this.objectList, '0000', false);
-            this.started = true;
-            const material = this.mesh.material as THREE.MeshLambertMaterial;
-            material.visible = false;
-        }
-    }
-
-    onFocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color = new THREE.Color(0, 0, 255);
-    }
-
-    onUnfocus() {
-        const material = this.mesh.material as THREE.MeshLambertMaterial
-        material.color.setHex(0x3232FF);
     }
 }

@@ -337,6 +337,8 @@ function handleController(controller) {
     controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
 
+let counter = 0;
+
 initVRControllers();
 player.position.set(0, 2, 7);
 scene.add(player);
