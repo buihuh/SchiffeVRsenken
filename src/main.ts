@@ -5,6 +5,7 @@ import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 THREE.Cache.enabled = true;
 
@@ -119,7 +120,7 @@ function textCallback2() {
 function loadTextObjects() {
     const loader = new FontLoader();
     // loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-    loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+    loader.load('./resources/helvetiker_bold.typeface.json', function (font) {
         centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, undefined, undefined, textCallback);
         let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
         let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
@@ -141,6 +142,34 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
     return null;
 }
+
+/*
+ * TODO: start test load model
+ */
+
+const gltfLoader = new GLTFLoader();
+const url = './resources/models/boat.gltf';
+const boat = new THREE.Object3D();
+boat.position.set(0,3.5,0)
+
+// Load a glTF resource
+gltfLoader.load(
+    url,
+    function ( gltf ) {
+        boat.add(gltf.scene);
+        scene.add(boat);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened' + error.message);
+    }
+);
+
+/*
+ * TODO: end test load model
+ */
 
 //VR-Controllers
 function buildControllers() {
@@ -324,6 +353,10 @@ renderer.setAnimationLoop(function () {
     if (centerText) {
         centerText.mesh.rotation.y += 0.004;
     }
+    if (boat && centerText){
+        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    }
+
     renderer.render(scene, camera);
     framecount++;
 });
@@ -332,6 +365,9 @@ const render = function () {
     requestAnimationFrame(render);
     if (centerText){
         centerText.mesh.rotation.y += 0.004;
+    }
+    if (boat && centerText){
+        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
     }
     renderer.render(scene, camera);
 };
