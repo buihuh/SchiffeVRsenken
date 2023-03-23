@@ -17,7 +17,7 @@ export abstract class GameObject {
         this.scene = scene
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(position.x, position.y, position.z);
-        if (rotation){
+        if (rotation) {
             this.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
         }
         scene.add(this.mesh);
@@ -78,19 +78,16 @@ export abstract class GameObject {
     }
 }
 
-class PlayingField extends GameObject {
+export class PlayingField extends GameObject {
     private readonly grid: THREE.GridHelper;
     private readonly highlightMesh: THREE.Mesh;
-
     private setShipMeshes;
-
     private shipMesh;
-
     private fieldStatusMeshes;
     private activePlayer: Players;
-    //private activePlayingField: Field[][];
-    private gamePhase;
-    private match: Match;
+    gamePhase;
+    match: Match;
+    waiting = false;
     private shipCounter = 0;
     private setShipHorizontal = true;
     private shipSize = 1;
@@ -98,8 +95,10 @@ class PlayingField extends GameObject {
     private setupField: Field[][];
     public winner;
     public finished = false;
+    public gameStarted = false;
+    doneHitting = false;
 
-    constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[], matchID: string, host: boolean = true) {
+    constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
             side: THREE.DoubleSide, visible: false
         }), position, scene, meshList, objectList);
@@ -117,7 +116,7 @@ class PlayingField extends GameObject {
             })
         );
         this.highlightMesh.position.set(0.5, 0, 0.5);
-         scene.add(this.highlightMesh);
+        scene.add(this.highlightMesh);
 
         /**
          * TODO test boat
@@ -131,9 +130,6 @@ class PlayingField extends GameObject {
 
         this.setShipMeshes = [];
         this.setShipMeshes.push(this.highlightMesh);
-
-        // this.setShipMeshes.push(boat);
-
         for (let i = 1; i < 4; i++) {
             const setShipMesh = new THREE.Mesh(
                 new THREE.SphereGeometry(0.4, 4, 2),
@@ -213,6 +209,38 @@ class PlayingField extends GameObject {
 
     }
 
+    startMatch(matchID: string, host: boolean = true) {
+        //Game Setup
+        this.firebase = new FB.Firebase();
+        let player1 = new Player(0, "Max");
+        let player2 = new Player(1, "Moritz");
+
+        let playingField1 = getStartedField();
+        let playingField2 = getStartedField();
+
+        this.setupField = getStartedField();
+        this.gamePhase = "setup"
+        this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
+        if (host) {
+            this.activePlayer = Players.Player1;
+            player1.isHost = true;
+            this.firebase.createGame(this.match)
+                .then(res => {
+                    console.log('match created')
+                    this.firebase.listenMatch(res, this.match);
+                }).catch(err => {
+                console.log('something went wrong ' + err)
+            });
+            console.log("Player 1 initialized");
+        } else {
+            this.activePlayer = Players.Player2;
+            this.firebase.listenMatch(matchID, this.match);
+            console.log("Player 2 initialized");
+        }
+
+        this.gameStarted = true;
+    }
+
 
     private showOwnPlayingFieldStatus(playingField: Field[][]) {
         for (let i = 0; i < playingField.length; i++) {
@@ -270,6 +298,7 @@ class PlayingField extends GameObject {
         }
         //Check if players have set up
         if (this.gamePhase == "setup" && this.match.player1Ready && this.match.player2Ready) {
+            this.waiting = false;
             switch (this.activePlayer) {
                 case Players.Player1:
                     this.match.fieldPlayer1 = this.setupField;
@@ -278,6 +307,11 @@ class PlayingField extends GameObject {
                     this.match.fieldPlayer2 = this.setupField;
                     break;
             }
+            this.firebase.updateMatch('0000', this.match).then(res => {
+                console.log('match updated')
+            }).catch(err => {
+                console.log('something went wrong ' + err)
+            });
             this.gamePhase = "running";
             this.highlightMesh.visible = true;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
@@ -293,9 +327,11 @@ class PlayingField extends GameObject {
                 break;
             case "running":
                 if (this.match.attacker == this.activePlayer) {
+                    this.waiting = false;
                     this.showTargetPlayingFieldStatus(this.getActivePlayingField());
                 } else {
-                    this.showOwnPlayingFieldStatus(this.getActivePlayingField());
+                    this.waiting = true;
+                    this.showOwnPlayingFieldStatus(this.getOwnPlayingField());
                 }
                 break;
         }
@@ -418,6 +454,7 @@ class PlayingField extends GameObject {
                     this.match.player2Ready = true;
                     break;
             }
+            this.waiting = true;
             this.firebase.updateMatch('0000', this.match).then(res => {
                 console.log('match updated')
             }).catch(err => {
@@ -428,6 +465,15 @@ class PlayingField extends GameObject {
 
     nextTurn() {
         this.match.nextRound();
+        this.doneHitting = false;
+
+        this.waiting = !(this.match.attacker == this.activePlayer);
+
+        this.firebase.updateMatch('0000', this.match).then(res => {
+            console.log('match updated')
+        }).catch(err => {
+            console.log('something went wrong ' + err)
+        });
 
         console.log("Player 1 Field");
         this.match.printField(this.match.fieldPlayer1);
@@ -449,7 +495,7 @@ class PlayingField extends GameObject {
 
         // this.firebase.updatePlayerPosition('0000', player).then(res => {
         //     // console.log('player updated')
-             this.updateEnemyPosition();
+        this.updateEnemyPosition();
         // }).catch(err => {
         //     console.log('something went wrong ' + err)
         // });
@@ -466,17 +512,17 @@ class PlayingField extends GameObject {
         let handL = this.scene.getObjectByName('playerHandL');
         let handR = this.scene.getObjectByName('playerHandR');
 
-        if(head) {
+        if (head) {
             head.position.set(enemy.position[0], enemy.position[1], enemy.position[2]);
             head.rotation.set(enemy.rotation[0], enemy.rotation[1], enemy.rotation[2]);
         }
-        if(handL) {
+        if (handL) {
             handL.position.set(enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], enemy.controllerLeftPosition[2]);
-            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1]+Math.PI, enemy.controllerLeftRotation[2]);
+            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1] + Math.PI, enemy.controllerLeftRotation[2]);
         }
-        if(handR) {
+        if (handR) {
             handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
-            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1]+Math.PI, enemy.controllerRightRotation[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1] + Math.PI, enemy.controllerRightRotation[2]);
         }
     }
 
@@ -544,9 +590,9 @@ class PlayingField extends GameObject {
                 this.setShip(highlightPos[0], highlightPos[1], this.setupField);
                 break;
             case "running":
-                if (this.activePlayer == this.match.attacker) {
+                if (this.activePlayer == this.match.attacker && !this.doneHitting) {
                     if (this.match.hit(this.match.attacker, highlightPos[1], highlightPos[0]) == "No Target!")
-                        this.nextTurn();
+                        this.doneHitting = true;
 
                     this.firebase.updateMatch('0000', this.match).then(res => {
                         console.log('match updated')

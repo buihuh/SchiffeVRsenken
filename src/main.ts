@@ -26,28 +26,28 @@ player.add(camera);
  * START LIGHTING & BACKGROUND
  */
 
-scene.background = new THREE.Color( 0x0055ff );
-scene.fog = new THREE.Fog( 0x0055ff, 10, 40 );
+scene.background = new THREE.Color(0x0055ff);
+scene.fog = new THREE.Fog(0x0055ff, 10, 40);
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry( 1000, 1000 ),
-    new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 0.4, transparent: true } )
+    new THREE.PlaneGeometry(1000, 1000),
+    new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.4, transparent: true})
 );
-plane.rotation.x = - Math.PI / 2;
+plane.rotation.x = -Math.PI / 2;
 plane.position.y = -1.1
-scene.add( plane );
+scene.add(plane);
 
-const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8);
-dirLight.position.set( 1, 4, 1 ).normalize();
-scene.add( dirLight );
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(1, 4, 1).normalize();
+scene.add(dirLight);
 
-const pointLight = new THREE.PointLight( 0xffffff);
+const pointLight = new THREE.PointLight(0xffffff);
 pointLight.distance = 20
 pointLight.intensity = 1
 pointLight.power = 12
 pointLight.color.setHex(0xffffff)
-pointLight.position.set( 0, 2, 6);
-scene.add( pointLight );
+pointLight.position.set(0, 2, 6);
+scene.add(pointLight);
 
 /**
  * END LIGHTING & BACKGROUND
@@ -72,13 +72,15 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0xFF3232}),
-    new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
+// const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
+//     new THREE.MeshLambertMaterial({color: 0xFF3232}),
+//     new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
+//
+// const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
+//     new THREE.MeshLambertMaterial({color: 0x3232FF}),
+//     new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
-const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0x3232FF}),
-    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
+const playingField = new GAME.PlayingField(new THREE.Vector3(0, 0, 0), scene, meshesInScene, gameObjects);
 
 
 /**
@@ -110,22 +112,45 @@ let centerText: Text3D;
 let leftText: Text3D;
 let rightText: Text3D;
 
-function textCallback() {
-    console.log("1");
+function hostGameStart(playingField: GAME.PlayingField) {
+    playingField.startMatch('0000');
+    rightText.setCallback(null);
+    leftText.setCallback(null);
+    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    centerText.setText("PLACE SHIPS");
 }
-function textCallback2() {
-    console.log("2");
+
+function guestGameStart(playingField: GAME.PlayingField) {
+    playingField.startMatch('0000', false);
+    rightText.setCallback(null);
+    leftText.setCallback(null);
+    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    centerText.setText("PLACE SHIPS");
+}
+
+function nextTurn(playingField: GAME.PlayingField) {
+    playingField.nextTurn();
+    centerText.setCallback(null);
 }
 
 function loadTextObjects() {
     const loader = new FontLoader();
     // loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+
     loader.load('./resources/helvetiker_bold.typeface.json', function (font) {
-        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, undefined, undefined, textCallback);
+        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, 1, undefined, null);
         let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
         let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
-        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font, undefined, rotationLeft);
-        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font, undefined, rotationRight);
+        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font,
+            1, rotationLeft, function () {
+                hostGameStart(playingField)
+            });
+        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font,
+            1, rotationRight, function () {
+                guestGameStart(playingField)
+            });
     });
 }
 
@@ -155,15 +180,15 @@ boat.position.set(0,3.85,0)
 // Load a glTF resource
 gltfLoader.load(
     url,
-    function ( gltf ) {
+    function (gltf) {
         boat.add(gltf.scene);
         scene.add(boat);
     },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
-    function ( error ) {
-        console.log( 'An error happened' + error.message);
+    function (error) {
+        console.log('An error happened' + error.message);
     }
 );
 
@@ -268,7 +293,7 @@ function handleController(controller) {
         }
         selectedGameObject = foundGameObject;
         if (selectedGameObject) {
-            if (!interacting){
+            if (!interacting) {
                 selectedGameObject.onFocus();
             }
             selectedGameObject.onIntersect(new THREE.Vector3().copy(intersects[0].point));
@@ -331,27 +356,25 @@ renderer.setAnimationLoop(function () {
             handleController(controller);
         });
     }
+    if (playingField.gameStarted) {
+        playingField.update();
 
-    if (hostTrigger.playingField) {
-        hostTrigger.playingField.update();
-        // if(framecount % 10 == 0) {
-            hostTrigger.playingField.updatePlayerData(vrControllers, camera);
-        // }
-        if (guestTrigger)
-            (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
-    }
+        if (playingField.waiting) {
+            if (centerText.text != "WAITING") {
+                centerText.setText("WAITING");
+                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+            }
+        } else if (playingField.gamePhase != "setup" && !playingField.doneHitting) {
+            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+        }
 
-    if (guestTrigger.playingField) {
-        guestTrigger.playingField.update();
-        // if(framecount % 10 == 0) {
-            guestTrigger.playingField.updatePlayerData(vrControllers, camera);
-        // }
-        if (hostTrigger)
-            (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
-    }
-    centerText.setCallback(textCallback2);
-    if (centerText) {
-        centerText.mesh.rotation.y += 0.004;
+        if (playingField.doneHitting && !centerText.callbackFunction) {
+            centerText.setCallback(function () {
+                nextTurn(playingField)
+            });
+            centerText.setText("CONFIRM");
+            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+        }
     }
     if (boat && centerText){
         boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
@@ -363,12 +386,12 @@ renderer.setAnimationLoop(function () {
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-    if (centerText){
-        centerText.mesh.rotation.y += 0.004;
-    }
-    if (boat && centerText){
-        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
-    }
+    // if (centerText){
+    //     centerText.mesh.rotation.y += 0.004;
+    // }
+    // if (boat && centerText){
+    //     boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    // }
     renderer.render(scene, camera);
 };
 
