@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
 import {Field} from "./field.js";
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+
 
 export abstract class GameObject {
     mesh: THREE.Mesh;
@@ -176,6 +178,7 @@ class PlayingField extends GameObject {
         this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
         if (host) {
             this.activePlayer = Players.Player1;
+            player1.isHost = true;
             this.firebase.createGame(this.match)
                 .then(res => {
                     console.log('match created')
@@ -189,6 +192,77 @@ class PlayingField extends GameObject {
             this.firebase.listenMatch(matchID, this.match);
             console.log("Player 2 initialized");
         }
+
+        /*
+        * TODO: start test load player model
+        */
+
+        const enemy = new THREE.Object3D();
+        const gltfLoader = new GLTFLoader();
+        const geometry = new THREE.SphereGeometry( 0.12, 32, 16 );
+        const material = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 255, 255)});
+        const sphere = new THREE.Mesh( geometry, material );
+        sphere.name = 'playerHead';
+        enemy.add(sphere);
+
+        const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
+        const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
+
+        gltfLoader.load(
+            urlhand_l,
+            function ( gltf ) {
+                let hand_r = gltf.scene;
+                // @ts-ignore
+                hand_r.traverse((child, i) => {
+                    if (child.isMesh) {
+                        child.material = material;
+                    }
+                });
+                hand_r.scale.set(0.01, 0.01, 0.01)
+                hand_r.position.set(-2, 0, 0);
+                hand_r.rotateY(Math.PI);
+                hand_r.name = 'playerHandR';
+                enemy.add(hand_r);
+            },
+            function ( xhr ) {
+                // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' + error.message);
+            }
+        );
+
+        gltfLoader.load(
+            urlhand_r,
+            function ( gltf ) {
+                let hand_l = gltf.scene;
+                // @ts-ignore
+                hand_l.traverse((child, i) => {
+                    if (child.isMesh) {
+                        child.material = material;
+                    }
+                });
+                hand_l.scale.set(0.01, 0.01, 0.01)
+                hand_l.position.set(2, 0, 0);
+                hand_l.rotateY(-Math.PI);
+                hand_l.name = 'playerHandL';
+                enemy.add(hand_l);
+            },
+            function ( xhr ) {
+                // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' + error.message);
+            }
+        );
+
+        enemy.rotateY(Math.PI);
+        enemy.position.set(0, 2, -3);
+        scene.add(enemy);
+        /*
+         * TODO: end test load player model
+         */
+
 
     }
 
@@ -413,6 +487,50 @@ class PlayingField extends GameObject {
         console.log("Player 2 Field");
         this.match.printField(this.match.fieldPlayer2);
         console.log(this.match.attacker + "'s turn!");
+    }
+
+    updatePlayerData(vrControllers: any, camera: THREE.PerspectiveCamera) {
+
+        let player = this.activePlayer == Players.Player1 ? this.match.player1 : this.match.player2;
+
+        player.position = [camera.position.x, camera.position.y, camera.position.z];
+        player.rotation = [camera.rotation.x, camera.rotation.y, camera.rotation.z];
+        player.controllerRightPosition = [vrControllers[0].position.x, vrControllers[0].position.y, vrControllers[0].position.z];
+        player.controllerRightRotation = [vrControllers[0].rotation.x, vrControllers[0].rotation.y, vrControllers[0].rotation.z];
+        player.controllerLeftPosition = [vrControllers[1].position.x, vrControllers[1].position.y, vrControllers[1].position.z];
+        player.controllerLeftRotation = [vrControllers[1].rotation.x, vrControllers[1].rotation.y, vrControllers[1].rotation.z];
+
+        // this.firebase.updatePlayerPosition('0000', player).then(res => {
+        //     // console.log('player updated')
+             this.updateEnemyPosition();
+        // }).catch(err => {
+        //     console.log('something went wrong ' + err)
+        // });
+
+    }
+
+    private updateEnemyPosition() {
+
+        // changed to mirror own movement to not exceed firebase limit
+        //const enemy = this.activePlayer == Players.Player2 ? this.match.player1 : this.match.player2;
+        const enemy = this.activePlayer == Players.Player1 ? this.match.player1 : this.match.player2;
+
+        let head = this.scene.getObjectByName('playerHead');
+        let handL = this.scene.getObjectByName('playerHandL');
+        let handR = this.scene.getObjectByName('playerHandR');
+
+        if(head) {
+            head.position.set(enemy.position[0], enemy.position[1], enemy.position[2]);
+            head.rotation.set(enemy.rotation[0], enemy.rotation[1], enemy.rotation[2]);
+        }
+        if(handL) {
+            handL.position.set(enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], enemy.controllerLeftPosition[2]);
+            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1]+Math.PI, enemy.controllerLeftRotation[2]);
+        }
+        if(handR) {
+            handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1]+Math.PI, enemy.controllerRightRotation[2]);
+        }
     }
 
     onFocus() {
