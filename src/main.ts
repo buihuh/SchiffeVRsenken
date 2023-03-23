@@ -5,7 +5,6 @@ import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 THREE.Cache.enabled = true;
 
@@ -337,8 +336,6 @@ function handleController(controller) {
     }
     controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
-
-let counter = 0;
 
 initVRControllers();
 player.position.set(0, 2, 7);

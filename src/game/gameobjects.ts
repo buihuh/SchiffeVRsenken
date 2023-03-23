@@ -215,6 +215,8 @@ export class PlayingField extends GameObject {
     startMatch(matchID: string, host: boolean = true) {
         //Game Setup
         this.firebase = new FB.Firebase();
+
+        //Game Setup
         let player1 = new Player(0, "Max");
         let player2 = new Player(1, "Moritz");
 
@@ -525,7 +527,7 @@ export class PlayingField extends GameObject {
         }
         if (handR) {
             handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
-            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1] + Math.PI, enemy.controllerRightRotation[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1]+Math.PI, enemy.controllerRightRotation[2]);
         }
     }
 
