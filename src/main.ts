@@ -6,6 +6,8 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 import {Text3D} from './game/text3D.js';
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -50,7 +52,9 @@ const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: 0xFF3232}),
     new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
 
-const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({color: 0x3232FF}), new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
+const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0x3232FF}),
+    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
 
 //</editor-fold>
@@ -102,6 +106,33 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
     return null;
 }
+
+/*
+ * TODO: start test load model
+ */
+
+const gltfLoader = new GLTFLoader();
+const url = './resources/models/boat.gltf';
+const boat = new THREE.Object3D();
+
+// Load a glTF resource
+gltfLoader.load(
+    url,
+    function ( gltf ) {
+        boat.add(gltf.scene);
+        scene.add(boat);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened' + error.message);
+    }
+);
+
+/*
+ * TODO: end test load model
+ */
 
 //VR-Controllers
 function buildControllers() {
@@ -252,6 +283,7 @@ if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
+let framecount = 0;
 //VR animation loop
 renderer.setAnimationLoop(function () {
     //Handle Controllers
@@ -263,32 +295,32 @@ renderer.setAnimationLoop(function () {
 
     if (hostTrigger.playingField) {
         hostTrigger.playingField.update();
-        if (guestTrigger) {
+        // if(framecount % 10 == 0) {
+            hostTrigger.playingField.updatePlayerData(vrControllers, camera);
+        // }
+        if (guestTrigger)
             (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
-        }
     }
 
     if (guestTrigger.playingField) {
         guestTrigger.playingField.update();
-        if (hostTrigger) {
+        // if(framecount % 10 == 0) {
+            guestTrigger.playingField.updatePlayerData(vrControllers, camera);
+        // }
+        if (hostTrigger)
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
-        }
     }
 
-    // let titleMesh = scene.getObjectByName("title");
-    // if (titleMesh) {
-    //     titleMesh.rotation.y += 0.005;
-    // }
-
-    // if (text3D) {
-    //     text3D.rotation.y += 0.005;
-    // }
-
     renderer.render(scene, camera);
+
+    framecount++;
 });
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
+
+    // mesh.rotation.y += 0.01;
+
     renderer.render(scene, camera);
 };
 
