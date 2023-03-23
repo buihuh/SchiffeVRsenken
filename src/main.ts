@@ -21,8 +21,38 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 let player = new THREE.Group();
 player.add(camera);
 
+/**
+ * START LIGHTING & BACKGROUND
+ */
+
+scene.background = new THREE.Color( 0x0055ff );
+scene.fog = new THREE.Fog( 0x0055ff, 10, 40 );
+
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry( 1000, 1000 ),
+    new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 0.4, transparent: true } )
+);
+plane.rotation.x = - Math.PI / 2;
+plane.position.y = -1.1
+scene.add( plane );
+
+const dirLight = new THREE.DirectionalLight( 0xffffff, 0.8);
+dirLight.position.set( 1, 4, 1 ).normalize();
+scene.add( dirLight );
+
+const pointLight = new THREE.PointLight( 0xffffff);
+pointLight.distance = 10
+pointLight.intensity = 1
+pointLight.power = 20
+pointLight.color.setHex(0xffffff)
+pointLight.position.set( 0, 3, 10 ).normalize();
+scene.add( pointLight );
+
+/**
+ * END LIGHTING & BACKGROUND
+ */
+
 const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setClearColor("#0055ff");
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -41,19 +71,6 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-const lightRight = new THREE.DirectionalLight(0xFFFFFF, 0.7);
-lightRight.position.set(10, 10, 10);
-scene.add(lightRight);
-
-const lightLeft = new THREE.DirectionalLight(0xFFFFFF, 0.7);
-lightLeft.position.set(-10, 10, 10);
-scene.add(lightLeft);
-
-//<editor-fold desc="GameObjects">
-//--------------------------------
-//  GameObjects
-//--------------------------------
-
 const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: 0xFF3232}),
     new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
@@ -62,7 +79,24 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: 0x3232FF}),
     new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
-//</editor-fold>
+
+/**
+ * Start Table
+ */
+
+addTable()
+
+function addTable(){
+    const geometry = new THREE.BoxGeometry(11, 0.7, 11);
+    const material = new THREE.MeshPhongMaterial ({color: 0xffffff, specular: 0xffffff });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, -0.3501, 0);
+    scene.add(cube);
+}
+
+/**
+ * End Table
+ */
 
 /**
  * Start Title
@@ -288,7 +322,6 @@ renderer.setAnimationLoop(function () {
     centerText.setCallback(textCallback2);
     centerText.mesh.rotation.y += 0.004;
     renderer.render(scene, camera);
-
     framecount++;
 });
 //Browser animation loop
