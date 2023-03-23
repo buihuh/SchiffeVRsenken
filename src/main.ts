@@ -266,18 +266,18 @@ renderer.setAnimationLoop(function () {
 
     if (hostTrigger.playingField) {
         hostTrigger.playingField.update();
-        if(framecount % 10 == 0) {
+        // if(framecount % 10 == 0) {
             hostTrigger.playingField.updatePlayerData(vrControllers, camera);
-        }
+        // }
         if (guestTrigger)
             (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
 
     if (guestTrigger.playingField) {
         guestTrigger.playingField.update();
-        if(framecount % 10 == 0) {
+        // if(framecount % 10 == 0) {
             guestTrigger.playingField.updatePlayerData(vrControllers, camera);
-        }
+        // }
         if (hostTrigger)
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }

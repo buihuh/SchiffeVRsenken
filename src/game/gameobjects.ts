@@ -196,19 +196,20 @@ class PlayingField extends GameObject {
         /*
         * TODO: start test load player model
         */
+
+        const enemy = new THREE.Object3D();
         const gltfLoader = new GLTFLoader();
-        const geometry = new THREE.SphereGeometry( 0.5, 32, 16 );
+        const geometry = new THREE.SphereGeometry( 0.12, 32, 16 );
         const material = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 255, 255)});
         const sphere = new THREE.Mesh( geometry, material );
-        sphere.position.set(0, 5, -10);
         sphere.name = 'playerHead';
-        this.scene.add( sphere );
+        enemy.add(sphere);
 
         const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
         const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
 
         gltfLoader.load(
-            urlhand_r,
+            urlhand_l,
             function ( gltf ) {
                 let hand_r = gltf.scene;
                 // @ts-ignore
@@ -217,10 +218,11 @@ class PlayingField extends GameObject {
                         child.material = material;
                     }
                 });
-                hand_r.scale.set(0.05, 0.05, 0.05)
-                hand_r.position.set(-2, 3, -10);
+                hand_r.scale.set(0.01, 0.01, 0.01)
+                hand_r.position.set(-2, 0, 0);
+                hand_r.rotateY(Math.PI);
                 hand_r.name = 'playerHandR';
-                scene.add(hand_r);
+                enemy.add(hand_r);
             },
             function ( xhr ) {
                 // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
@@ -231,7 +233,7 @@ class PlayingField extends GameObject {
         );
 
         gltfLoader.load(
-            urlhand_l,
+            urlhand_r,
             function ( gltf ) {
                 let hand_l = gltf.scene;
                 // @ts-ignore
@@ -240,10 +242,11 @@ class PlayingField extends GameObject {
                         child.material = material;
                     }
                 });
-                hand_l.scale.set(0.05, 0.05, 0.05)
-                hand_l.position.set(2, 3, -10);
+                hand_l.scale.set(0.01, 0.01, 0.01)
+                hand_l.position.set(2, 0, 0);
+                hand_l.rotateY(-Math.PI);
                 hand_l.name = 'playerHandL';
-                scene.add(hand_l);
+                enemy.add(hand_l);
             },
             function ( xhr ) {
                 // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
@@ -253,6 +256,9 @@ class PlayingField extends GameObject {
             }
         );
 
+        enemy.rotateY(Math.PI);
+        enemy.position.set(0, 2, -3);
+        scene.add(enemy);
         /*
          * TODO: end test load player model
          */
@@ -513,29 +519,17 @@ class PlayingField extends GameObject {
         let handL = this.scene.getObjectByName('playerHandL');
         let handR = this.scene.getObjectByName('playerHandR');
 
-        // if(head) {
-        //     head.position.set(-enemy.position[0], enemy.position[1], -enemy.position[2] - 10);
-        //     head.rotation.set(-enemy.rotation[0], enemy.rotation[1], -enemy.rotation[2]);
-        // }
-        // if(handL) {
-        //     handL.position.set(-enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], -enemy.controllerLeftPosition[2] - 10);
-        //     handL.rotation.set(-enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], -enemy.controllerLeftRotation[2]);
-        // }
-        // if(handR) {
-        //     handR.position.set(-enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], -enemy.controllerRightPosition[2] - 10);
-        //     handR.rotation.set(-enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], -enemy.controllerRightRotation[2]);
-        // }
         if(head) {
-            head.position.set(enemy.position[0], enemy.position[1], -enemy.position[2]);
+            head.position.set(enemy.position[0], enemy.position[1], enemy.position[2]);
             head.rotation.set(enemy.rotation[0], enemy.rotation[1], enemy.rotation[2]);
         }
         if(handL) {
             handL.position.set(enemy.controllerLeftPosition[0], enemy.controllerLeftPosition[1], enemy.controllerLeftPosition[2]);
-            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1], enemy.controllerLeftRotation[2]);
+            handL.rotation.set(enemy.controllerLeftRotation[0], enemy.controllerLeftRotation[1]+Math.PI, enemy.controllerLeftRotation[2]);
         }
         if(handR) {
             handR.position.set(enemy.controllerRightPosition[0], enemy.controllerRightPosition[1], enemy.controllerRightPosition[2]);
-            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1], enemy.controllerRightRotation[2]);
+            handR.rotation.set(enemy.controllerRightRotation[0], enemy.controllerRightRotation[1]+Math.PI, enemy.controllerRightRotation[2]);
         }
     }
 
