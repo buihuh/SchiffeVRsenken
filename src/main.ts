@@ -6,7 +6,6 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 import {Text3D} from './game/text3D.js';
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 
 const scene = new THREE.Scene();
@@ -106,33 +105,6 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
     return null;
 }
-
-/*
- * TODO: start test load model
- */
-
-const gltfLoader = new GLTFLoader();
-const url = './resources/models/boat.gltf';
-const boat = new THREE.Object3D();
-
-// Load a glTF resource
-gltfLoader.load(
-    url,
-    function ( gltf ) {
-        boat.add(gltf.scene);
-        scene.add(boat);
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened' + error.message);
-    }
-);
-
-/*
- * TODO: end test load model
- */
 
 //VR-Controllers
 function buildControllers() {
