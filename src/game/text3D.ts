@@ -39,8 +39,10 @@ export class Text3D extends GameObject {
         this.mesh.geometry.center();
         this.meshList.push(this.mesh);
         this.callbackFunction = callbackFunction;
-        this.onFocus();
-        this.onUnfocus();
+
+        // Bug workaround
+        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
+        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
     }
 
     onSelectStart() {
