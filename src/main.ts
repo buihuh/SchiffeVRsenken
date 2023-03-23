@@ -175,7 +175,7 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 const gltfLoader = new GLTFLoader();
 const url = './resources/models/boat.gltf';
 const boat = new THREE.Object3D();
-boat.position.set(0,3.85,0)
+boat.position.set(0, 3.85, 0)
 
 // Load a glTF resource
 gltfLoader.load(
@@ -347,7 +347,7 @@ if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
-let framecount = 0;
+let whosTurn = null;
 //VR animation loop
 renderer.setAnimationLoop(function () {
     //Handle Controllers
@@ -358,6 +358,15 @@ renderer.setAnimationLoop(function () {
     }
     if (playingField.gameStarted) {
         playingField.update();
+
+
+        if (playingField.gamePhase == "running") {
+            if (playingField.match.attacker != whosTurn) {
+                whosTurn = playingField.match.attacker;
+                (leftText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                leftText.setText("Player " + (whosTurn + 1).toString() + "'s turn");
+            }
+        }
 
         if (playingField.waiting) {
             if (centerText.text != "WAITING") {
@@ -376,12 +385,11 @@ renderer.setAnimationLoop(function () {
             (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
         }
     }
-    if (boat && centerText){
-        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
-    }
+    // if (boat && centerText) {
+    //     boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    // }
 
     renderer.render(scene, camera);
-    framecount++;
 });
 //Browser animation loop
 const render = function () {
