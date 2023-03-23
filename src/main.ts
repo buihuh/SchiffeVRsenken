@@ -349,14 +349,18 @@ renderer.setAnimationLoop(function () {
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
     centerText.setCallback(textCallback2);
-    centerText.mesh.rotation.y += 0.004;
+    if (centerText) {
+        centerText.mesh.rotation.y += 0.004;
+    }
     renderer.render(scene, camera);
     framecount++;
 });
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-    centerText.mesh.rotation.y += 0.004;
+    if (centerText){
+        centerText.mesh.rotation.y += 0.004;
+    }
     renderer.render(scene, camera);
 };
 
