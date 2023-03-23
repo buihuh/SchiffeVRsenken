@@ -30,6 +30,8 @@ export class Match {
 
     gameIsFinished: boolean;
     winner: Players;
+    player1Ready = false;
+    player2Ready = false;
 
     private roundCounter: number;
 
@@ -55,6 +57,9 @@ export class Match {
         }
         const target: Field[][] = attacker == Players.Player1 ? this.fieldPlayer2 : this.fieldPlayer1;
         const targetField: Field = target[y][x];
+
+        if (target[y][x].isHit)
+            return "Already Hit!";
 
         target[y][x].isHit = true;
         target[y][x].isVisible = true;
@@ -104,5 +109,18 @@ export class Match {
         }
         board += "\n(y)" + "\n~ = Water + Unhit" + "\n* = Water + Hit" + "\nS = Ship + Unhit" + "\nH = Ship + Hit";
         console.log(board);
+    }
+
+    copyFrom(match: Match) {
+        this.player1 = match.player1;
+        this.player2 = match.player2;
+        this.fieldPlayer1 = match.fieldPlayer1;
+        this.fieldPlayer2 = match.fieldPlayer2;
+        this.attacker = match.attacker;
+        this.gameIsFinished = match.gameIsFinished;
+        this.winner = match.winner;
+        this.player1Ready = match.player1Ready;
+        this.player2Ready = match.player2Ready;
+        this.roundCounter = match.roundCounter;
     }
 }

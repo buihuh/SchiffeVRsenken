@@ -3,7 +3,18 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-
 // @ts-ignore
 import {getAnalytics} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js';
 // @ts-ignore
-import {getFirestore, doc, addDoc, serverTimestamp, collection, updateDoc, setDoc, getDoc, onSnapshot} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
+import {
+    getFirestore,
+    doc,
+    addDoc,
+    serverTimestamp,
+    collection,
+    updateDoc,
+    setDoc,
+    getDoc,
+    onSnapshot
+// @ts-ignore
+} from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js';
 import {firebaseConfig} from './firebase-config.js';
 import * as MATCH from './../game/match.js';
 
@@ -20,7 +31,7 @@ import * as MATCH from './../game/match.js';
 
 export class Firebase {
 
-    protected app : any;
+    protected app: any;
     protected analytics: any;
     onlineId: number;
     protected db;
@@ -34,7 +45,7 @@ export class Firebase {
 
     async createGame(match: MATCH.Match) {
         let onlineId = '0000';
-            // Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
+        // Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
         await setDoc(doc(this.db, 'matches', onlineId), {
             created: serverTimestamp(),
             match: JSON.stringify(match),
@@ -70,7 +81,7 @@ export class Firebase {
 
     async joinMatch(onlineId) {
         console.log(onlineId)
-        const docRef = doc(this.db, "matches",  onlineId.toString());
+        const docRef = doc(this.db, "matches", onlineId.toString());
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             console.log("Document data:", docSnap.data());
@@ -80,11 +91,17 @@ export class Firebase {
         return docSnap.data();
     }
 
-    async listenMatch(onlineId) {
+    async listenMatch(onlineId, ownMatch: MATCH.Match) {
         const unsub = onSnapshot(doc(this.db, "matches", onlineId.toString()), (doc) => {
             console.log("Current data: ", doc.data());
+            this.updateMatchData(ownMatch, doc.data());
         });
 
         console.log(doc);
+    }
+
+    private updateMatchData(match: MATCH.Match, data) {
+        match.copyFrom(JSON.parse(data.match));
+        console.log("Match updated");
     }
 }

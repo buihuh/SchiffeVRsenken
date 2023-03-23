@@ -1,3 +1,4 @@
+import * as FB from "../firebase/firebase.js";
 import * as THREE from 'three';
 import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
@@ -83,16 +84,18 @@ class PlayingField extends GameObject {
 
     private fieldStatusMeshes;
     private activePlayer: Players;
-    private activePlayingField: Field[][];
+    //private activePlayingField: Field[][];
     private gamePhase;
     private match: Match;
     private shipCounter = 0;
     private setShipHorizontal = true;
     private shipSize = 1;
+    private firebase;
+    private setupField: Field[][];
     public winner;
     public finished = false;
 
-    constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
+    constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[], matchID: string, host: boolean = true) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
             side: THREE.DoubleSide, visible: false
         }), position, scene, meshList, objectList);
@@ -159,6 +162,8 @@ class PlayingField extends GameObject {
             })
         );
 
+        this.firebase = new FB.Firebase();
+
         //Game Setup
         let player1 = new Player(0, "Max");
         let player2 = new Player(1, "Moritz");
@@ -166,23 +171,43 @@ class PlayingField extends GameObject {
         let playingField1 = getStartedField();
         let playingField2 = getStartedField();
 
-        this.activePlayer = Players.Player1;
-        this.activePlayingField = playingField1
+        this.setupField = getStartedField();
         this.gamePhase = "setup"
         this.match = new Match(player1, player2, null, 0, playingField1, playingField2);
+        if (host) {
+            this.activePlayer = Players.Player1;
+            this.firebase.createGame(this.match)
+                .then(res => {
+                    console.log('match created')
+                    this.firebase.listenMatch(res, this.match);
+                }).catch(err => {
+                console.log('something went wrong ' + err)
+            });
+            console.log("Player 1 initialized");
+        } else {
+            this.activePlayer = Players.Player2;
+            this.firebase.listenMatch(matchID, this.match);
+            console.log("Player 2 initialized");
+        }
 
     }
+
 
     private showOwnPlayingFieldStatus(playingField: Field[][]) {
         for (let i = 0; i < playingField.length; i++) {
             for (let j = 0; j < playingField[i].length; j++) {
                 const statusMesh = this.fieldStatusMeshes[j][i];
                 const material = statusMesh.material as THREE.MeshBasicMaterial;
-                console.log("(" + i + "," + j + "): " + playingField[i][j].hasShip)
                 if (playingField[i][j].hasShip) {
-                    material.color.setHex(0x00FF00);
+                    if (playingField[i][j].isHit)
+                        material.color.setHex(0xFF0000);
+                    else
+                        material.color.setHex(0x00FF00);
                 } else {
-                    material.color.setHex(0xFFFFFF);
+                    if (playingField[i][j].isHit)
+                        material.color.setHex(0x0000FF);
+                    else
+                        material.color.setHex(0xFFFFFF);
                 }
                 statusMesh.material;
             }
@@ -214,26 +239,62 @@ class PlayingField extends GameObject {
         return [Math.floor(highlightPosX), Math.floor(highlightPosZ)]
     }
 
-    private update() {
+    update() {
         //Check if match is over
-        if (this.match.checkState() == GameState.GameOver) {
+        if (this.gamePhase == "running" && this.match.checkState() == GameState.GameOver) {
             this.finished = true;
             this.winner = this.match.winner;
             console.log(this.winner + " won");
             return;
         }
+        //Check if players have set up
+        if (this.gamePhase == "setup" && this.match.player1Ready && this.match.player2Ready) {
+            switch (this.activePlayer) {
+                case Players.Player1:
+                    this.match.fieldPlayer1 = this.setupField;
+                    break;
+                case Players.Player2:
+                    this.match.fieldPlayer2 = this.setupField;
+                    break;
+            }
+            this.gamePhase = "running";
+            this.highlightMesh.visible = true;
+            for (let i = 1; i < this.setShipMeshes.length; i++) {
+                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
+            }
+            (this.highlightMesh.material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
+        }
+
         switch (this.gamePhase) {
             //this is needed as long we only have one grid
             case "setup":
-                this.showOwnPlayingFieldStatus(this.activePlayingField);
+                this.showOwnPlayingFieldStatus(this.setupField);
                 break;
             case "running":
-                if (this.activePlayer == Players.Player1) {
-                    this.showTargetPlayingFieldStatus(this.activePlayingField);
+                if (this.match.attacker == this.activePlayer) {
+                    this.showTargetPlayingFieldStatus(this.getActivePlayingField());
                 } else {
-                    this.showTargetPlayingFieldStatus(this.activePlayingField);
+                    this.showOwnPlayingFieldStatus(this.getActivePlayingField());
                 }
                 break;
+        }
+    }
+
+    private getActivePlayingField() {
+        switch (this.match.attacker) {
+            case Players.Player1:
+                return this.match.fieldPlayer2;
+            case Players.Player2:
+                return this.match.fieldPlayer1;
+        }
+    }
+
+    private getOwnPlayingField() {
+        switch (this.activePlayer) {
+            case Players.Player1:
+                return this.match.fieldPlayer1;
+            case Players.Player2:
+                return this.match.fieldPlayer2;
         }
     }
 
@@ -306,45 +367,52 @@ class PlayingField extends GameObject {
         return true;
     }
 
-    private setShip(currentFieldX: number, currentFieldY: number) {
+    private setShip(currentFieldX: number, currentFieldY: number, field: Field[][]) {
         if (!this.checkShipPlacement(currentFieldX, currentFieldY, this.setShipHorizontal,
-            this.shipSize, this.activePlayingField))
+            this.shipSize, field))
             return;
 
-        for (let i = 0; i < this.shipSize; i++) {
-            if (this.setShipHorizontal) {
-                this.activePlayingField[currentFieldX + i][currentFieldY].hasShip = true;
-            } else {
-                this.activePlayingField[currentFieldX][currentFieldY + i].hasShip = true;
+        if (this.shipCounter <= 9) {
+            for (let i = 0; i < this.shipSize; i++) {
+                if (this.setShipHorizontal) {
+                    field[currentFieldX + i][currentFieldY].hasShip = true;
+                } else {
+                    field[currentFieldX][currentFieldY + i].hasShip = true;
+                }
             }
         }
+        this.shipCounter++;
 
-        if (this.shipCounter >= 9) {
-            this.shipCounter = 0;
-            this.shipSize = 1;
+        if (this.shipCounter > 9) {
+            this.shipSize = 0;
+            this.highlightMesh.visible = false; // temporary disable visibility
             for (let i = 1; i < this.setShipMeshes.length; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
             }
-            this.nextTurn();
-            return;
+            switch (this.activePlayer) {
+                case Players.Player1:
+                    this.match.player1Ready = true;
+                    break;
+                case Players.Player2:
+                    this.match.player2Ready = true;
+                    break;
+            }
+            this.firebase.updateMatch('0000', this.match).then(res => {
+                console.log('match updated')
+            }).catch(err => {
+                console.log('something went wrong ' + err)
+            });
         }
-        this.shipCounter++;
     }
 
     nextTurn() {
-        if (this.activePlayer == Players.Player1) {
-            this.activePlayer = Players.Player2;
-            this.activePlayingField = this.gamePhase == "setup" ? this.match.fieldPlayer2 : this.match.fieldPlayer1;
-        } else {
-            this.activePlayer = Players.Player1;
-            this.activePlayingField = this.match.fieldPlayer2;
+        this.match.nextRound();
 
-            if (this.gamePhase == "setup") {
-                this.gamePhase = "running";
-                (this.highlightMesh.material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
-            }
-        }
-        this.update();
+        console.log("Player 1 Field");
+        this.match.printField(this.match.fieldPlayer1);
+        console.log("Player 2 Field");
+        this.match.printField(this.match.fieldPlayer2);
+        console.log(this.match.attacker + "'s turn!");
     }
 
     onFocus() {
@@ -382,7 +450,7 @@ class PlayingField extends GameObject {
 
             const gridPos = this.getHighlightedGridPosition()
             const placeable = this.checkShipPlacement(gridPos[0], gridPos[1],
-                this.setShipHorizontal, this.shipSize, this.activePlayingField);
+                this.setShipHorizontal, this.shipSize, this.getOwnPlayingField());
 
             for (let i = 0; i < this.shipSize; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = true;
@@ -408,15 +476,23 @@ class PlayingField extends GameObject {
 
         switch (this.gamePhase) {
             case "setup":
-                this.setShip(highlightPos[0], highlightPos[1]);
+                this.setShip(highlightPos[0], highlightPos[1], this.setupField);
                 break;
             case "running":
-                this.match.hit(this.match.attacker, highlightPos[1], highlightPos[0])
+                if (this.activePlayer == this.match.attacker) {
+                    if (this.match.hit(this.match.attacker, highlightPos[1], highlightPos[0]) == "No Target!")
+                        this.nextTurn();
+
+                    this.firebase.updateMatch('0000', this.match).then(res => {
+                        console.log('match updated')
+                    }).catch(err => {
+                        console.log('something went wrong ' + err)
+                    });
+                }
                 break;
             default:
                 break;
         }
-        this.update()
     }
 
     onSqueezeStart() {
@@ -432,7 +508,7 @@ export class GameTrigger extends GameObject {
 
     onSelectStart() {
         if (!this.started) {
-            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList, this.objectList);
+            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList, this.objectList, "");
             this.started = true;
             return;
         }
@@ -448,5 +524,55 @@ export class GameTrigger extends GameObject {
     onUnfocus() {
         const material = this.mesh.material as THREE.MeshLambertMaterial
         material.color = new THREE.Color(255, 0, 0);
+    }
+}
+
+export class HostTrigger extends GameObject {
+    started = false;
+    playingField: PlayingField;
+
+    onSelectStart() {
+        if (!this.started) {
+            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList,
+                this.objectList, '0000');
+            this.started = true;
+            const material = this.mesh.material as THREE.MeshLambertMaterial;
+            material.visible = false;
+        }
+    }
+
+    onFocus() {
+        const material = this.mesh.material as THREE.MeshLambertMaterial
+        material.color = new THREE.Color(255, 0, 0);
+    }
+
+    onUnfocus() {
+        const material = this.mesh.material as THREE.MeshLambertMaterial
+        material.color.setHex(0xFF3232);
+    }
+}
+
+export class GuestTrigger extends GameObject {
+    started = false;
+    playingField: PlayingField;
+
+    onSelectStart() {
+        if (!this.started) {
+            this.playingField = new PlayingField(new THREE.Vector3(0, 0, 0), this.scene, this.meshList,
+                this.objectList, '0000', false);
+            this.started = true;
+            const material = this.mesh.material as THREE.MeshLambertMaterial;
+            material.visible = false;
+        }
+    }
+
+    onFocus() {
+        const material = this.mesh.material as THREE.MeshLambertMaterial
+        material.color = new THREE.Color(0, 0, 255);
+    }
+
+    onUnfocus() {
+        const material = this.mesh.material as THREE.MeshLambertMaterial
+        material.color.setHex(0x3232FF);
     }
 }

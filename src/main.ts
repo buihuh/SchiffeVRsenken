@@ -21,7 +21,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.update();
 
-
 document.body.appendChild(renderer.domElement);
 document.body.appendChild(VRButton.createButton(renderer));
 
@@ -45,9 +44,13 @@ scene.add(light);
 //  GameObjects
 //--------------------------------
 
-const game = new GAME.GameTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: new THREE.Color(255, 0, 0)}),
-    new THREE.Vector3(0, 2, -3), scene, meshesInScene, gameObjects);
+const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0xFF3232}),
+    new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
+
+const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({color: 0x3232FF}),
+    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
 
 //</editor-fold>
@@ -80,7 +83,10 @@ function buildControllers() {
         new THREE.Vector3(0, 0, -1)
     ]);
 
-    const line = new THREE.Line(geometry);
+    const material = new THREE.LineBasicMaterial({
+        color: "#ff4c7c"
+    });
+    const line = new THREE.Line(geometry, material);
     line.scale.z = 0;
 
     const controllers = [];
@@ -153,10 +159,10 @@ function handleController(controller) {
     controller.children[0].scale.z = 10;
     const rotationMatrix = new THREE.Matrix4();
     rotationMatrix.extractRotation(controller.matrixWorld);
-    const raycaster = new THREE.Raycaster();
-    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
-    const intersects = raycaster.intersectObjects(meshesInScene);
+    const rayCaster = new THREE.Raycaster();
+    rayCaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+    rayCaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
+    const intersects = rayCaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
@@ -212,7 +218,7 @@ function handleController(controller) {
 }
 
 initVRControllers();
-player.position.set(0, 5, 15);
+player.position.set(0, 2, 7);
 scene.add(player);
 if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
@@ -227,9 +233,22 @@ renderer.setAnimationLoop(function () {
         });
     }
 
-    scene.remove(text.planeMesh);
+    if (hostTrigger.playingField) {
+        hostTrigger.playingField.update();
+        if (guestTrigger)
+            (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+    }
+
+    if (guestTrigger.playingField) {
+        guestTrigger.playingField.update();
+
+        if (hostTrigger)
+            (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+    }
+
+    /*scene.remove(text.planeMesh);
     text.refreshText();
-    scene.add(text.planeMesh);
+    scene.add(text.planeMesh);*/
 
     //Cube rotation
     // mesh.rotation.y += 0.01;
