@@ -23,6 +23,16 @@ let player = new THREE.Group();
 player.add(camera);
 
 /**
+ * START Options
+ */
+
+let rotateCenterText = true;
+
+/**
+ * END Options
+ */
+
+/**
  * START LIGHTING & BACKGROUND
  */
 
@@ -72,16 +82,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-// const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
-//     new THREE.MeshLambertMaterial({color: 0xFF3232}),
-//     new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
-//
-// const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
-//     new THREE.MeshLambertMaterial({color: 0x3232FF}),
-//     new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
-
 const playingField = new GAME.PlayingField(new THREE.Vector3(0, 0, 0), scene, meshesInScene, gameObjects);
-
 
 /**
  * Start Table
@@ -94,7 +95,7 @@ function addTable() {
     const material = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0x766565});
     material.shininess = 1;
     const cube = new THREE.Mesh(geometry, material);
-    cube.position.set(0, -0.3501, 0);
+    cube.position.set(0, -0.351, 0);
     scene.add(cube);
 }
 
@@ -113,6 +114,13 @@ let leftText: Text3D;
 let rightText: Text3D;
 
 function hostGameStart(playingField: GAME.PlayingField) {
+    rotateCenterText = false;
+    if(boat){
+        boat.visible = false;
+    }
+    if(centerText){
+        centerText.mesh.rotation.set(0, 0, 0);
+    }
     playingField.startMatch('0000');
     rightText.setCallback(null);
     leftText.setCallback(null);
@@ -122,6 +130,13 @@ function hostGameStart(playingField: GAME.PlayingField) {
 }
 
 function guestGameStart(playingField: GAME.PlayingField) {
+    rotateCenterText = false;
+    if(boat){
+        boat.visible = false;
+    }
+    if(centerText){
+        centerText.mesh.rotation.set(0, 0, 0);
+    }
     playingField.startMatch('0000', false);
     rightText.setCallback(null);
     leftText.setCallback(null);
@@ -137,7 +152,6 @@ function nextTurn(playingField: GAME.PlayingField) {
 
 function loadTextObjects() {
     const loader = new FontLoader();
-    // loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
 
     loader.load('./resources/helvetiker_bold.typeface.json', function (font) {
         centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, 1, undefined, null);
@@ -338,8 +352,6 @@ function handleController(controller) {
     controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
 
-let counter = 0;
-
 initVRControllers();
 player.position.set(0, 2, 7);
 scene.add(player);
@@ -358,7 +370,6 @@ renderer.setAnimationLoop(function () {
     }
     if (playingField.gameStarted) {
         playingField.update();
-
 
         if (playingField.gamePhase == "running") {
             if (playingField.match.attacker != whosTurn) {
@@ -385,21 +396,25 @@ renderer.setAnimationLoop(function () {
             (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
         }
     }
-    // if (boat && centerText) {
-    //     boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
-    // }
+
+    if (rotateCenterText && centerText){
+        centerText.mesh.rotation.y += 0.004;
+    }
+    if (rotateCenterText && boat && centerText){
+        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    }
 
     renderer.render(scene, camera);
 });
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-    // if (centerText){
-    //     centerText.mesh.rotation.y += 0.004;
-    // }
-    // if (boat && centerText){
-    //     boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
-    // }
+    if (rotateCenterText && centerText){
+        centerText.mesh.rotation.y += 0.004;
+    }
+    if (rotateCenterText && boat && centerText){
+        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    }
     renderer.render(scene, camera);
 };
 
