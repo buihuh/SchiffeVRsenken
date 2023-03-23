@@ -5,7 +5,6 @@ import {GameState, getStartedField, Match, Players} from "./match.js";
 import {Field} from "./field.js";
 import {ModelLoader} from "./modelLoader.js";
 
-
 export abstract class GameObject {
     mesh: THREE.Mesh;
     protected intersectionPoint: THREE.Vector3;
@@ -14,10 +13,13 @@ export abstract class GameObject {
     protected meshList: any[];
 
     constructor(geometry: THREE.BufferGeometry, material: THREE.Material, position: THREE.Vector3,
-                scene: THREE.Scene, meshList: any[], objectList: any[]) {
+                scene: THREE.Scene, meshList: any[], objectList: any[], rotation: THREE.Vector3 = null) {
         this.scene = scene
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.position.set(position.x, position.y, position.z);
+        if (rotation){
+            this.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
+        }
         scene.add(this.mesh);
         meshList.push(this.mesh);
         objectList.push(this);

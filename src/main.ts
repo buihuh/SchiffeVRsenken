@@ -55,40 +55,34 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
     new THREE.MeshLambertMaterial({color: 0x3232FF}),
     new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
 
-
 //</editor-fold>
+
+loadTitle();
 
 /**
  * TODO: start Title
  */
 
-loadTitle();
+let centerText: Text3D;
+let leftText: Text3D;
+let rightText: Text3D;
+
+let switcher = true;
+function textCallback() {
+    console.log("1");
+}
+function textCallback2() {
+    console.log("2");
+}
 
 function loadTitle() {
     const loader = new FontLoader();
-    let text3D;
     loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        const geometry = new TextGeometry("SchiffeVRsenken", {
-            font: font,
-            size: 1,
-            height: 0.2,
-            curveSegments: 10,
-            bevelEnabled: true,
-            bevelThickness: 0.02,
-            bevelSize: 0.02,
-            bevelOffset: 0,
-            bevelSegments: 5
-        });
-        geometry.center();
-        geometry.computeBoundingBox();
-        const material = new THREE.MeshPhongMaterial({
-            color: '#dbe4eb', specular: '#dbe4eb'
-        });
-        // let  mesh = new THREE.Mesh(geometry, material);
-        // mesh.name = "title";
-
-        text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
-        text3D.font = font;
+        centerText = new Text3D(new THREE.Vector3(0, 4, 0), scene, meshesInScene, gameObjects, "CENTER", font, null, textCallback);
+        let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
+        let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
+        leftText = new Text3D(new THREE.Vector3(-5, 4, 0), scene, meshesInScene, gameObjects, "LEFT", font, rotationLeft);
+        rightText = new Text3D(new THREE.Vector3(5, 4, 0), scene, meshesInScene, gameObjects, "RIGHT", font, rotationRight);
     });
 }
 
@@ -248,6 +242,8 @@ function handleController(controller) {
     controller.userData.squeezePressedPrev = controller.userData.squeezePressed;
 }
 
+let counter = 0;
+
 initVRControllers();
 player.position.set(0, 2, 7);
 scene.add(player);
@@ -282,6 +278,13 @@ renderer.setAnimationLoop(function () {
         if (hostTrigger)
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
+
+    centerText.setCallback(textCallback2);
+
+    // if (switcher) {
+    //     centerText.setCallback(textCallback2());
+    //     switcher = !switcher;
+    // }
 
     renderer.render(scene, camera);
 
