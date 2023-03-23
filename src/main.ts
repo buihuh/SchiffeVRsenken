@@ -41,11 +41,11 @@ dirLight.position.set( 1, 4, 1 ).normalize();
 scene.add( dirLight );
 
 const pointLight = new THREE.PointLight( 0xffffff);
-pointLight.distance = 10
+pointLight.distance = 20
 pointLight.intensity = 1
-pointLight.power = 20
+pointLight.power = 12
 pointLight.color.setHex(0xffffff)
-pointLight.position.set( 0, 3, 10 ).normalize();
+pointLight.position.set( 0, 2, 6);
 scene.add( pointLight );
 
 /**
@@ -86,9 +86,10 @@ const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
 
 addTable()
 
-function addTable(){
+function addTable() {
     const geometry = new THREE.BoxGeometry(11, 0.7, 11);
-    const material = new THREE.MeshPhongMaterial ({color: 0xffffff, specular: 0xffffff });
+    const material = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0x766565});
+    material.shininess = 1;
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(0, -0.3501, 0);
     scene.add(cube);
