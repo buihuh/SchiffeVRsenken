@@ -4,7 +4,7 @@ import {Vector3} from 'three';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
 export class Text3D extends GameObject {
-    started:boolean = false;
+    started: boolean = false;
     text: string;
     font;
     size;
@@ -17,7 +17,7 @@ export class Text3D extends GameObject {
     focusColor = 0xf39c12;
 
     constructor(position, scene, meshList, objectList, // for super
-                text: string, font, size= 1, rotation: THREE.Vector3 = null, callbackFunction = null // for this class
+                text: string, font, size = 1, rotation: THREE.Vector3 = null, callbackFunction = null // for this class
     ) {
         super(new TextGeometry(text, {
             font: font,
@@ -33,6 +33,7 @@ export class Text3D extends GameObject {
             color: new THREE.Color(255, 255, 255),
             specular: new THREE.Color(255, 255, 255)
         }), position, scene, meshList, objectList, rotation);
+        this.size = size;
         this.text = text;
         this.font = font;
         this.mesh.geometry.center();
@@ -43,26 +44,32 @@ export class Text3D extends GameObject {
     }
 
     onSelectStart() {
-        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.selectColor);
-        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.selectColor);
+        if (this.callbackFunction) {
+            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.selectColor);
+            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.selectColor);
+        }
     }
 
     onSelectEnd() {
-        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
-        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
         if (this.callbackFunction) {
+            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
+            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
             this.callbackFunction();
         }
     }
 
     onFocus() {
-        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.focusColor);
-        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.focusColor);
+        if (this.callbackFunction) {
+            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.focusColor);
+            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.focusColor);
+        }
     }
 
     onUnfocus() {
-        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
-        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
+        if (this.callbackFunction) {
+            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
+            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
+        }
     }
 
     /**
