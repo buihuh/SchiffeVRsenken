@@ -12,7 +12,7 @@ export class Text3D extends GameObject {
     material;
     callbackFunction = null;
 
-    standardColor = 0xdbffeb;
+    standardColor = 0xffffff;
     selectColor = 0x27ae60;
     focusColor = 0xf39c12;
 
@@ -30,8 +30,8 @@ export class Text3D extends GameObject {
             bevelOffset: 0,
             bevelSegments: 5
         }), new THREE.MeshPhongMaterial({
-            color: new THREE.Color(219, 255, 235),
-            specular: new THREE.Color(219, 255, 235)
+            color: new THREE.Color(255, 255, 255),
+            specular: new THREE.Color(255, 255, 255)
         }), position, scene, meshList, objectList, rotation);
         this.text = text;
         this.font = font;
@@ -86,13 +86,6 @@ export class Text3D extends GameObject {
     /**
      * Start Helper
      */
-
-    getMaterial() {
-        const material = this.mesh.material as THREE.MeshPhongMaterial;
-        material.color = new THREE.Color(219, 255, 235);
-        material.specular = new THREE.Color(219, 255, 235);
-        return material;
-    }
 
     getGeometry() {
         const geometry = new TextGeometry(this.text, {
