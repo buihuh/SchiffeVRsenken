@@ -4,9 +4,10 @@ import {Vector3} from 'three';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
 export class Text3D extends GameObject {
-    text: string;
     started:boolean = false;
+    text: string;
     font;
+    size;
     counter = 0;
     material;
     callbackFunction = null;
@@ -16,11 +17,11 @@ export class Text3D extends GameObject {
     focusColor = 0xf39c12;
 
     constructor(position, scene, meshList, objectList, // for super
-                text: string, font, rotation: THREE.Vector3 = null, callbackFunction = null // for this class
+                text: string, font, size= 1, rotation: THREE.Vector3 = null, callbackFunction = null // for this class
     ) {
         super(new TextGeometry(text, {
             font: font,
-            size: 1,
+            size: size,
             height: 0.2,
             curveSegments: 10,
             bevelEnabled: true,
@@ -96,7 +97,7 @@ export class Text3D extends GameObject {
     getGeometry() {
         const geometry = new TextGeometry(this.text, {
             font: this.font,
-            size: 1,
+            size: this.size,
             height: 0.2,
             curveSegments: 10,
             bevelEnabled: true,

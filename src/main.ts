@@ -7,6 +7,8 @@ import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
+THREE.Cache.enabled = true;
+
 const gameTitleText = "SchiffeVRsenken".toUpperCase();
 const createGameText = "Create Game".toUpperCase();
 const joinGameText = "Join Game".toUpperCase();
@@ -40,10 +42,13 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-const light = new THREE.DirectionalLight(0xFFFFFF, 0.9);
-light.position.set(10, 10, 10);
+const lightRight = new THREE.DirectionalLight(0xFFFFFF, 0.7);
+lightRight.position.set(10, 10, 10);
+scene.add(lightRight);
 
-scene.add(light);
+const lightLeft = new THREE.DirectionalLight(0xFFFFFF, 0.7);
+lightLeft.position.set(-10, 10, 10);
+scene.add(lightLeft);
 
 //<editor-fold desc="GameObjects">
 //--------------------------------
@@ -79,12 +84,13 @@ function textCallback2() {
 
 function loadTextObjects() {
     const loader = new FontLoader();
-    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, null, textCallback);
+    // loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, undefined, undefined, textCallback);
         let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
         let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
-        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font, rotationLeft);
-        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font, rotationRight);
+        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font, undefined, rotationLeft);
+        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font, undefined, rotationRight);
     });
 }
 
@@ -226,9 +232,9 @@ function handleController(controller) {
         }
         selectedGameObject = foundGameObject;
         if (selectedGameObject) {
-            if (!interacting)
+            if (!interacting){
                 selectedGameObject.onFocus();
-
+            }
             selectedGameObject.onIntersect(new THREE.Vector3().copy(intersects[0].point));
         }
     } else {
@@ -307,14 +313,8 @@ renderer.setAnimationLoop(function () {
         if (hostTrigger)
             (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
     }
-
     centerText.setCallback(textCallback2);
-
-    // if (switcher) {
-    //     centerText.setCallback(textCallback2());
-    //     switcher = !switcher;
-    // }
-
+    centerText.mesh.rotation.y += 0.004;
     renderer.render(scene, camera);
 
     framecount++;
@@ -322,9 +322,7 @@ renderer.setAnimationLoop(function () {
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-
-    // mesh.rotation.y += 0.01;
-
+    centerText.mesh.rotation.y += 0.004;
     renderer.render(scene, camera);
 };
 
