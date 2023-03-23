@@ -11,6 +11,10 @@ export class Text3D extends GameObject {
     material;
     callbackFunction = null;
 
+    standardColor = 0xdbffeb;
+    selectColor = 0x27ae60;
+    focusColor = 0xf39c12;
+
     constructor(position, scene, meshList, objectList, // for super
                 text: string, font, rotation: THREE.Vector3 = null, callbackFunction = null // for this class
     ) {
@@ -31,21 +35,33 @@ export class Text3D extends GameObject {
         this.text = text;
         this.font = font;
         this.mesh.geometry.center();
-        this.mesh.geometry.computeBoundingBox();
         this.meshList.push(this.mesh);
         this.callbackFunction = callbackFunction;
+        this.onFocus();
+        this.onUnfocus();
     }
 
     onSelectStart() {
+        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.selectColor);
+        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.selectColor);
+    }
+
+    onSelectEnd() {
+        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
+        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
         if (this.callbackFunction) {
             this.callbackFunction();
         }
     }
 
     onFocus() {
+        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.focusColor);
+        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.focusColor);
     }
 
     onUnfocus() {
+        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
+        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
     }
 
     /**
