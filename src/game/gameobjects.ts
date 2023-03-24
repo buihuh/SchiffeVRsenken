@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
 import {Field} from "./field.js";
+import {ModelLoader} from "./modelLoader.js";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export abstract class GameObject {
@@ -276,6 +277,9 @@ export class PlayingField extends GameObject {
 
         this.matchID = matchID;
         this.gameStarted = true;
+        const modelLoader = new ModelLoader(this.scene);
+        modelLoader.loadEnemy();
+        console.log(this.scene);
     }
 
 
