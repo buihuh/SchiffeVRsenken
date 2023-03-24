@@ -119,15 +119,14 @@ export class PlayingField extends GameObject {
         this.highlightMesh.position.set(0.5, 0, 0.5);
         scene.add(this.highlightMesh);
 
-        /**
-         * TODO test boat
-         */
-        const modelLoader = new ModelLoader(this.scene);
-        modelLoader.loadBoat(1);
-
-        /**
-         * TODO end test boat
-         */
+        // /**
+        //  * TODO test boat
+        //  */
+        // modelLoader.loadBoat(1);
+        //
+        // /**
+        //  * TODO end test boat
+        //  */
 
         this.setShipMeshes = [];
         this.setShipMeshes.push(this.highlightMesh);
@@ -178,7 +177,6 @@ export class PlayingField extends GameObject {
             })
         );
 
-        modelLoader.loadEnemy();
     }
 
     startMatch(matchID: string, host: boolean = true) {
@@ -213,6 +211,9 @@ export class PlayingField extends GameObject {
         }
 
         this.gameStarted = true;
+        const modelLoader = new ModelLoader(this.scene);
+        modelLoader.loadEnemy();
+        console.log(this.scene);
     }
 
 

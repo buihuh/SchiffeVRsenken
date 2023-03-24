@@ -5,6 +5,7 @@ import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 THREE.Cache.enabled = true;
 
@@ -357,7 +358,7 @@ renderer.setAnimationLoop(function () {
     }
     if (playingField.gameStarted) {
         playingField.update();
-
+        playingField.updatePlayerData(vrControllers, camera);
 
         if (playingField.gamePhase == "running") {
             if (playingField.match.attacker != whosTurn) {

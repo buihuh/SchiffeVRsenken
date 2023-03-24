@@ -32,7 +32,7 @@ export class ModelLoader {
         let object = new THREE.Group();
         this.gltfLoader.load(
             url,
-             function ( gltf ) {
+            ( gltf ) => {
                 object = gltf.scene;
                 parent.add(object);
                 changeModel(object, version);
