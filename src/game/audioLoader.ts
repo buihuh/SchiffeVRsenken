@@ -15,7 +15,7 @@ export class AudioLoader {
     load(url: string, loop: boolean = false, volume: number = 0.4) {
         // create a global audio source
         const sound = new THREE.Audio(this.listener);
-        this.loader.load(url,function( buffer ) {
+        this.loader.load(url, function (buffer) {
             sound.setBuffer(buffer);
             sound.setLoop(loop);
             sound.setVolume(volume);

@@ -58,8 +58,7 @@ export class Match {
         const target: Field[][] = attacker == Players.Player1 ? this.fieldPlayer2 : this.fieldPlayer1;
         const targetField: Field = target[y][x];
 
-        if (target[y][x].isHit)
-            return "Already Hit!";
+        if (target[y][x].isHit) return "Already Hit!";
 
         target[y][x].isHit = true;
         target[y][x].isVisible = true;

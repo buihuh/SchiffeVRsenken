@@ -36,7 +36,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
 
-camera.position.set( 5, 5, 5 );
+camera.position.set(5, 5, 5);
 
 orbit.update();
 
@@ -68,27 +68,24 @@ let water;
 function initWater() {
     const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
 
-    water = new Water(
-        waterGeometry,
-        {
-            textureWidth: 512,
-            textureHeight: 512,
-            waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function (texture) {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            }),
-            sunDirection: new THREE.Vector3(),
-            sunColor: 0xffffff,
-            waterColor: 0x001e0f,
-            distortionScale: 3.7,
-            fog: scene.fog !== undefined
-        }
-    );
+    water = new Water(waterGeometry, {
+        textureWidth: 512,
+        textureHeight: 512,
+        waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function (texture) {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        }),
+        sunDirection: new THREE.Vector3(),
+        sunColor: 0xffffff,
+        waterColor: 0x001e0f,
+        distortionScale: 3.7,
+        fog: scene.fog !== undefined
+    });
     water.position.setY(-1);
     water.rotation.x = -Math.PI / 2;
 }
 
 initWater();
-scene.add( water );
+scene.add(water);
 
 /**
  * Sky
@@ -99,22 +96,21 @@ let sun = new THREE.Vector3();
 function initSky() {
 
     let sky = new Sky();
-    sky.scale.setScalar( 10000 );
-    scene.add( sky );
+    sky.scale.setScalar(10000);
+    scene.add(sky);
 
     const skyUniforms = sky.material.uniforms;
 
-    skyUniforms[ 'turbidity' ].value = 10;
-    skyUniforms[ 'rayleigh' ].value = 2;
-    skyUniforms[ 'mieCoefficient' ].value = 0.005;
-    skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+    skyUniforms['turbidity'].value = 10;
+    skyUniforms['rayleigh'].value = 2;
+    skyUniforms['mieCoefficient'].value = 0.005;
+    skyUniforms['mieDirectionalG'].value = 0.8;
 
     const parameters = {
-        elevation: 2.5,
-        azimuth: 180
+        elevation: 2.5, azimuth: 180
     };
 
-    const pmremGenerator = new THREE.PMREMGenerator( renderer );
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
     let renderTarget;
 
     function updateSun() {
@@ -127,6 +123,7 @@ function initSky() {
         renderTarget = pmremGenerator.fromScene(sky as any);
         scene.environment = renderTarget.texture;
     }
+
     updateSun();
 }
 
@@ -161,11 +158,11 @@ const playingField = new GAME.PlayingField(new THREE.Vector3(0, 0, 0), scene, me
  * Start Table
  */
 
-addTable()
+addTable();
 
 function addTable() {
     const geometry = new THREE.BoxGeometry(11, 0.7, 11);
-    const material = new THREE.MeshStandardMaterial( { roughness: 0 } );
+    const material = new THREE.MeshStandardMaterial({roughness: 0});
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(0, -0.351, 0);
     scene.add(cube);
@@ -177,7 +174,7 @@ function addTable() {
 
 function hostGameStart(playingField: GAME.PlayingField) {
     rotateCenterText = false;
-    if(centerText){
+    if (centerText) {
         centerText.mesh.rotation.set(0, 0, 0);
     }
     playingField.startMatch('6666');
@@ -190,7 +187,7 @@ function hostGameStart(playingField: GAME.PlayingField) {
 
 function guestGameStart(playingField: GAME.PlayingField) {
     rotateCenterText = false;
-    if(centerText){
+    if (centerText) {
         centerText.mesh.rotation.set(0, 0, 0);
     }
     playingField.startMatch('6666', false);
@@ -223,14 +220,12 @@ function loadTextObjects() {
         centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, 1, undefined, null);
         let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
         let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
-        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font,
-            1, rotationLeft, function () {
-                hostGameStart(playingField)
-            });
-        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font,
-            1, rotationRight, function () {
-                guestGameStart(playingField)
-            });
+        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font, 1, rotationLeft, function () {
+            hostGameStart(playingField);
+        });
+        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font, 1, rotationRight, function () {
+            guestGameStart(playingField);
+        });
     });
 }
 
@@ -261,38 +256,28 @@ boat1.position.setY(-0.90);
 
 boat2.position.setX(-12);
 boat2.position.setY(-0.90);
-boat2.rotation.set(0,Math.PI,0)
+boat2.rotation.set(0, Math.PI, 0);
 
 const boatSpinning = new THREE.Object3D();
 boatSpinning.add(boat1);
 boatSpinning.add(boat2);
-scene.add(boatSpinning)
+scene.add(boatSpinning);
 
-gltfLoader.load(
-    url,
-    function (gltf) {
-        boat1.add(gltf.scene);
-    },
-    function (xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (error) {
-        console.log('An error happened' + error.message);
-    }
-);
+gltfLoader.load(url, function (gltf) {
+    boat1.add(gltf.scene);
+}, function (xhr) {
+    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+}, function (error) {
+    console.log('An error happened' + error.message);
+});
 
-gltfLoader.load(
-    url,
-    function (gltf) {
-        boat2.add(gltf.scene);
-    },
-    function (xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (error) {
-        console.log('An error happened' + error.message);
-    }
-);
+gltfLoader.load(url, function (gltf) {
+    boat2.add(gltf.scene);
+}, function (xhr) {
+    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+}, function (error) {
+    console.log('An error happened' + error.message);
+});
 
 /*
  * TODO: end test load model
@@ -301,10 +286,7 @@ gltfLoader.load(
 //VR-Controllers
 function buildControllers() {
     const controllerModelFactory = new XRControllerModelFactory();
-    const geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, -1)
-    ]);
+    const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
 
     const material = new THREE.LineBasicMaterial({
         color: "#ff4c7c"
@@ -387,8 +369,7 @@ function handleController(controller) {
     rayCaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
     const intersects = rayCaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
-        if(!sound.isPlaying)
-            sound.play();
+        if (!sound.isPlaying) sound.play();
 
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
@@ -490,7 +471,7 @@ renderer.setAnimationLoop(function () {
 
             if (playingField.doneHitting && !centerText.callbackFunction) {
                 centerText.setCallback(function () {
-                    nextTurn(playingField)
+                    nextTurn(playingField);
                 });
                 centerText.setText("CONFIRM");
                 (centerText.mesh.material as THREE.MeshStandardMaterial).visible = true;

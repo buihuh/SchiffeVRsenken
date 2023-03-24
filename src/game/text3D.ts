@@ -29,8 +29,7 @@ export class Text3D extends GameObject {
             bevelSize: 0.02,
             bevelOffset: 0,
             bevelSegments: 5
-        }), new THREE.MeshStandardMaterial( { roughness: 0 } )
-            , position, scene, meshList, objectList, rotation);
+        }), new THREE.MeshStandardMaterial({roughness: 0}), position, scene, meshList, objectList, rotation);
         this.size = size;
         this.text = text;
         this.font = font;
