@@ -6,6 +6,9 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+import {Water} from 'three/examples/jsm/objects/Water.js';
+import {Sky} from 'three/examples/jsm/objects/Sky.js';
+
 
 THREE.Cache.enabled = true;
 
@@ -22,47 +25,6 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 let player = new THREE.Group();
 player.add(camera);
 
-/**
- * START Options
- */
-
-let rotateCenterText = true;
-
-/**
- * END Options
- */
-
-/**
- * START LIGHTING & BACKGROUND
- */
-
-scene.background = new THREE.Color(0x0055ff);
-scene.fog = new THREE.Fog(0x0055ff, 10, 40);
-
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1000, 1000),
-    new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.4, transparent: true})
-);
-plane.rotation.x = -Math.PI / 2;
-plane.position.y = -1.1
-scene.add(plane);
-
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(1, 4, 1).normalize();
-scene.add(dirLight);
-
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.distance = 20
-pointLight.intensity = 1
-pointLight.power = 12
-pointLight.color.setHex(0xffffff)
-pointLight.position.set(0, 2, 6);
-scene.add(pointLight);
-
-/**
- * END LIGHTING & BACKGROUND
- */
-
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -78,9 +40,101 @@ let vrControllers = null;
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
-
     camera.updateProjectionMatrix();
 });
+
+/**
+ * START Options
+ */
+
+let rotateCenterText = false;
+
+/**
+ * END Options
+ */
+let water = buildWater();
+
+let sun = new THREE.Vector3();
+
+let sky = buildSky();
+function SceneManager(canvas) {
+    // Magic goes here
+}
+
+function buildSky() {
+    // Can be viewed here
+    const sky = new Sky();
+    sky.scale.setScalar(10000); // Specify the dimensions of the skybox
+    scene.add(sky); // Add the sky to our scene
+
+    // Set up variables to control the look of the sky
+    const skyUniforms = sky.material.uniforms;
+    skyUniforms['turbidity'].value = 10;
+    skyUniforms['rayleigh'].value = 2;
+    skyUniforms['mieCoefficient'].value = 0.005;
+    skyUniforms['mieDirectionalG'].value = 0.8;
+    const parameters = {
+        elevation: 3,
+        azimuth: 115
+    };
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
+    const theta = THREE.MathUtils.degToRad(parameters.azimuth);
+    sun.setFromSphericalCoords(1, phi, theta);
+    sky.material.uniforms['sunPosition'].value.copy(sun);
+    (water.material as THREE.ShaderMaterial).uniforms['sunDirection'].value.copy(sun).normalize();
+    scene.environment = pmremGenerator.fromScene(sky as any).texture;
+    // (water.material as THREE.ShaderMaterial).uniforms['speed'].value = 0.0;
+}
+
+function buildWater() {
+    const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+    const water = new Water(
+        waterGeometry,
+        {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function ( texture ) {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            }),
+            alpha: 1,
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x1e0014,
+            distortionScale: 3.7,
+            fog: scene.fog !== undefined
+        }
+    );
+    water.rotation.x =- Math.PI / 2;
+    water.position.set(0,-1,0)
+    scene.add(water);
+
+    const waterUniforms = water.material.uniforms;
+    return water;
+}
+
+/**
+ * START LIGHTING & BACKGROUND
+ */
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(1, 4, 1).normalize();
+scene.add(dirLight);
+
+const pointLight = new THREE.PointLight(0xffffff);
+pointLight.distance = 20
+pointLight.intensity = 1
+pointLight.power = 12
+pointLight.color.setHex(0xffffff)
+pointLight.position.set(0, 2, 6);
+scene.add(pointLight);
+
+const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.1 );
+scene.add( ambientLight );
+
+/**
+ * END LIGHTING & BACKGROUND
+ */
 
 const playingField = new GAME.PlayingField(new THREE.Vector3(0, 0, 0), scene, meshesInScene, gameObjects);
 
@@ -103,21 +157,8 @@ function addTable() {
  * End Table
  */
 
-/**
- * Start Title
- */
-
-loadTextObjects();
-
-let centerText: Text3D;
-let leftText: Text3D;
-let rightText: Text3D;
-
 function hostGameStart(playingField: GAME.PlayingField) {
     rotateCenterText = false;
-    if(boat){
-        boat.visible = false;
-    }
     if(centerText){
         centerText.mesh.rotation.set(0, 0, 0);
     }
@@ -131,9 +172,6 @@ function hostGameStart(playingField: GAME.PlayingField) {
 
 function guestGameStart(playingField: GAME.PlayingField) {
     rotateCenterText = false;
-    if(boat){
-        boat.visible = false;
-    }
     if(centerText){
         centerText.mesh.rotation.set(0, 0, 0);
     }
@@ -149,6 +187,16 @@ function nextTurn(playingField: GAME.PlayingField) {
     playingField.nextTurn();
     centerText.setCallback(null);
 }
+
+/**
+ * Start Text Objects
+ */
+
+loadTextObjects();
+
+let centerText: Text3D;
+let leftText: Text3D;
+let rightText: Text3D;
 
 function loadTextObjects() {
     const loader = new FontLoader();
@@ -169,7 +217,7 @@ function loadTextObjects() {
 }
 
 /**
- * End Title
+ * End Text Objects
  */
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
@@ -188,15 +236,37 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
 const gltfLoader = new GLTFLoader();
 const url = './resources/models/boat.gltf';
-const boat = new THREE.Object3D();
-boat.position.set(0, 3.85, 0)
+const boat1 = new THREE.Object3D();
+const boat2 = new THREE.Object3D();
+boat1.position.setX(12);
+boat1.position.setY(-0.90);
 
-// Load a glTF resource
+boat2.position.setX(-12);
+boat2.position.setY(-0.90);
+boat2.rotation.set(0,Math.PI,0)
+
+const boatSpinning = new THREE.Object3D();
+boatSpinning.add(boat1);
+boatSpinning.add(boat2);
+scene.add(boatSpinning)
+
 gltfLoader.load(
     url,
     function (gltf) {
-        boat.add(gltf.scene);
-        scene.add(boat);
+        boat1.add(gltf.scene);
+    },
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (error) {
+        console.log('An error happened' + error.message);
+    }
+);
+
+gltfLoader.load(
+    url,
+    function (gltf) {
+        boat2.add(gltf.scene);
     },
     function (xhr) {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
@@ -397,25 +467,27 @@ renderer.setAnimationLoop(function () {
         }
     }
 
-    if (rotateCenterText && centerText){
+    if (rotateCenterText && centerText) {
         centerText.mesh.rotation.y += 0.004;
     }
-    if (rotateCenterText && boat && centerText){
-        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    if (boat1 && boat2) {
+        boatSpinning.rotation.y -= 0.003;
     }
-
+    water.material.uniforms['time'].value += 1.0 / 200.0;
     renderer.render(scene, camera);
 });
+
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-    if (rotateCenterText && centerText){
+    if (rotateCenterText && centerText) {
         centerText.mesh.rotation.y += 0.004;
     }
-    if (rotateCenterText && boat && centerText){
-        boat.rotation.y = centerText.mesh.rotation.y + Math.PI * 1.5
+    if (boat1 && boat2) {
+        boatSpinning.rotation.y -= 0.003;
     }
     renderer.render(scene, camera);
+    water.material.uniforms['time'].value += 1.0 / 200.0;
 };
 
 render();
