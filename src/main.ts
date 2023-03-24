@@ -10,7 +10,6 @@ import {AudioLoader} from "./game/audioLoader.js";
 import {Water} from 'three/examples/jsm/objects/Water.js';
 import {Sky} from 'three/examples/jsm/objects/Sky.js';
 
-
 THREE.Cache.enabled = true;
 
 const gameTitleText = "SchiffeVRsenken".toUpperCase();
@@ -28,17 +27,18 @@ player.add(camera);
 export const audioLoader = new AudioLoader(camera);
 const sound = audioLoader.load('./resources/sounds/DrunkenSailor.mp3', true, 0.3);
 
-
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+document.body.appendChild(VRButton.createButton(renderer));
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
-orbit.update();
 
-document.body.appendChild(renderer.domElement);
-document.body.appendChild(VRButton.createButton(renderer));
+camera.position.set( 5, 5, 5 );
+
+orbit.update();
 
 renderer.xr.enabled = true;
 let vrControllers = null;
@@ -89,7 +89,6 @@ function initWater() {
 
 initWater();
 scene.add( water );
-
 
 /**
  * Sky
@@ -518,6 +517,7 @@ const render = function () {
     if (boat1 && boat2) {
         boatSpinning.rotation.y -= 0.003;
     }
+    orbit.update();
     renderer.render(scene, camera);
     water.material.uniforms['time'].value += 1.0 / 200.0;
 };
