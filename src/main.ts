@@ -6,6 +6,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+import {AudioLoader} from "./game/audioLoader.js";
 
 THREE.Cache.enabled = true;
 
@@ -21,6 +22,9 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 
 let player = new THREE.Group();
 player.add(camera);
+export const audioLoader = new AudioLoader(camera);
+const sound = audioLoader.load('./resources/sounds/DrunkenSailor.mp3', true, 0.3);
+
 
 /**
  * START LIGHTING & BACKGROUND
@@ -285,6 +289,9 @@ function handleController(controller) {
     rayCaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix);
     const intersects = rayCaster.intersectObjects(meshesInScene);
     if (intersects.length > 0) {
+        if(!sound.isPlaying)
+            sound.play();
+
         //Controller points at something
         controller.children[0].scale.z = intersects[0].distance;
         let foundGameObject = getGameObjectFromMesh(intersects[0].object);
