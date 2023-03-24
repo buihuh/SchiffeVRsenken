@@ -6,7 +6,6 @@ import {Player} from "./player.js";
 import {GameState, getStartedField, Match, Players} from "./match.js";
 import {Field} from "./field.js";
 import {ModelLoader} from "./modelLoader.js";
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export abstract class GameObject {
     mesh: THREE.Mesh;
@@ -177,73 +176,71 @@ export class PlayingField extends GameObject {
         * TODO: start test load player model
         */
 
-        const enemy = new THREE.Object3D();
-        const gltfLoader = new GLTFLoader();
-        const geometry = new THREE.SphereGeometry(0.12, 32, 16);
-        const material = new THREE.MeshStandardMaterial({color: new THREE.Color(255, 255, 255)});
-        const sphere = new THREE.Mesh(geometry, material);
-        sphere.name = 'playerHead';
-        enemy.add(sphere);
+        // const enemy = new THREE.Object3D();
+        // const gltfLoader = new GLTFLoader();
+        // const geometry = new THREE.SphereGeometry(0.12, 32, 16);
+        // const material = new THREE.MeshStandardMaterial({color: new THREE.Color(255, 255, 255)});
 
-        const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
-        const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
+        // const sphere = new THREE.Mesh(geometry, material);
+        // sphere.name = 'playerHead';
+        // enemy.add(sphere);
 
-        gltfLoader.load(
-            urlhand_l,
-            function (gltf) {
-                let hand_r = gltf.scene;
-                // @ts-ignore
-                hand_r.traverse((child, i) => {
-                    if (child.isMesh) {
-                        child.material = material;
-                    }
-                });
-                hand_r.scale.set(0.01, 0.01, 0.01)
-                hand_r.position.set(-2, 0, 0);
-                hand_r.rotateY(Math.PI);
-                hand_r.name = 'playerHandR';
-                enemy.add(hand_r);
-            },
-            function (xhr) {
-                // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
-            },
-            function (error) {
-                console.log('An error happened' + error.message);
-            }
-        );
+        // const urlhand_r = './resources/models/r_hand_skeletal_lowres.gltf';
+        // const urlhand_l = './resources/models/l_hand_skeletal_lowres.gltf';
 
-        gltfLoader.load(
-            urlhand_r,
-            function (gltf) {
-                let hand_l = gltf.scene;
-                // @ts-ignore
-                hand_l.traverse((child, i) => {
-                    if (child.isMesh) {
-                        child.material = material;
-                    }
-                });
-                hand_l.scale.set(0.01, 0.01, 0.01)
-                hand_l.position.set(2, 0, 0);
-                hand_l.rotateY(-Math.PI);
-                hand_l.name = 'playerHandL';
-                enemy.add(hand_l);
-            },
-            function (xhr) {
-                // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
-            },
-            function (error) {
-                console.log('An error happened' + error.message);
-            }
-        );
-
-        enemy.rotateY(Math.PI);
-        enemy.position.set(0, 2, -3);
-        scene.add(enemy);
+        // gltfLoader.load(
+        //     urlhand_l,
+        //     function (gltf) {
+        //         let hand_r = gltf.scene;
+        //         // @ts-ignore
+        //         hand_r.traverse((child, i) => {
+        //             if (child.isMesh) {
+        //                 child.material = material;
+        //             }
+        //         });
+        //         hand_r.scale.set(0.01, 0.01, 0.01)
+        //         hand_r.position.set(-2, 0, 0);
+        //         hand_r.rotateY(Math.PI);
+        //         hand_r.name = 'playerHandR';
+        //         enemy.add(hand_r);
+        //     },
+        //     function (xhr) {
+        //         // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded r hand' );
+        //     },
+        //     function (error) {
+        //         console.log('An error happened' + error.message);
+        //     }
+        // );
+        //
+        // gltfLoader.load(
+        //     urlhand_r,
+        //     function (gltf) {
+        //         let hand_l = gltf.scene;
+        //         // @ts-ignore
+        //         hand_l.traverse((child, i) => {
+        //             if (child.isMesh) {
+        //                 child.material = material;
+        //             }
+        //         });
+        //         hand_l.scale.set(0.01, 0.01, 0.01)
+        //         hand_l.position.set(2, 0, 0);
+        //         hand_l.rotateY(-Math.PI);
+        //         hand_l.name = 'playerHandL';
+        //         enemy.add(hand_l);
+        //     },
+        //     function (xhr) {
+        //         // console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded l hand' );
+        //     },
+        //     function (error) {
+        //         console.log('An error happened' + error.message);
+        //     }
+        // );
+        // enemy.rotateY(Math.PI);
+        // enemy.position.set(0, 2, -3);
+        // scene.add(enemy);
         /*
          * TODO: end test load player model
          */
-
-
     }
 
     startMatch(matchID: string, host: boolean = true) {

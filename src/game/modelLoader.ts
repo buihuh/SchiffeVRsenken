@@ -10,7 +10,7 @@ export class ModelLoader {
     constructor(scene: THREE.Scene) {
         this.gltfLoader = new GLTFLoader();
         this.scene = scene;
-        this.standardMaterial = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 255, 255)});
+        this.standardMaterial = new THREE.MeshStandardMaterial({color: new THREE.Color(255, 255, 255)});
     }
 
     loadEnemy() {
