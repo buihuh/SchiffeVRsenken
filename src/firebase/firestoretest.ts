@@ -23,7 +23,7 @@ field2[1][0].hasShip = true;
 const match = new Match(player1, player2, Players.Player1, 0, field1, field2);
 
 const firebase = new FB.Firebase();
-firebase.createGame(match)
+firebase.createGame(match, '0000')
     .then(res => {
         console.log('match created')
         firebase.joinMatch(res);

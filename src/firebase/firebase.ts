@@ -44,8 +44,7 @@ export class Firebase {
         this.db = getFirestore(this.app);
     }
 
-    async createGame(match: MATCH.Match) {
-        let onlineId = '0000';
+    async createGame(match: MATCH.Match, onlineId: string) {
         // Math.floor(Math.random() * (9999 - 1000) + 1000).toString();
         await setDoc(doc(this.db, 'matches', onlineId), {
             created: serverTimestamp(),
@@ -84,7 +83,7 @@ export class Firebase {
         const docRef = doc(this.db, 'matches', id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            if(player.isHost) {
+            if (player.isHost) {
                 await updateDoc(docRef, {
                     player1Position: player.position,
                     player1Rotation: player.rotation,
