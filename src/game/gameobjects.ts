@@ -84,7 +84,7 @@ export class PlayingField extends GameObject {
     private setShipMeshes;
     private shipMesh;
     private fieldStatusMeshes;
-    private activePlayer: Players;
+    activePlayer: Players;
     gamePhase;
     match: Match;
     waiting = false;
@@ -97,6 +97,7 @@ export class PlayingField extends GameObject {
     public finished = false;
     public gameStarted = false;
     doneHitting = false;
+    private matchID: string;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
         super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
@@ -256,7 +257,7 @@ export class PlayingField extends GameObject {
         if (host) {
             this.activePlayer = Players.Player1;
             player1.isHost = true;
-            this.firebase.createGame(this.match)
+            this.firebase.createGame(this.match, matchID)
                 .then(res => {
                     console.log('match created')
                     this.firebase.listenMatch(res, this.match);
@@ -270,6 +271,7 @@ export class PlayingField extends GameObject {
             console.log("Player 2 initialized");
         }
 
+        this.matchID = matchID;
         this.gameStarted = true;
     }
 
@@ -322,7 +324,7 @@ export class PlayingField extends GameObject {
 
     update() {
         //Check if match is over
-        if (this.gamePhase == "running" && this.match.checkState() == GameState.GameOver) {
+        if (!this.match.hasEmptyField() && this.gamePhase == "running" && this.match.checkState() == GameState.GameOver) {
             this.finished = true;
             this.winner = this.match.winner;
             console.log(this.winner + " won");
@@ -339,7 +341,7 @@ export class PlayingField extends GameObject {
                     this.match.fieldPlayer2 = this.setupField;
                     break;
             }
-            this.firebase.updateMatch('0000', this.match).then(res => {
+            this.firebase.updateMatch(this.matchID, this.match).then(res => {
                 console.log('match updated')
             }).catch(err => {
                 console.log('something went wrong ' + err)
@@ -487,7 +489,7 @@ export class PlayingField extends GameObject {
                     break;
             }
             this.waiting = true;
-            this.firebase.updateMatch('0000', this.match).then(res => {
+            this.firebase.updateMatch(this.matchID, this.match).then(res => {
                 console.log('match updated')
             }).catch(err => {
                 console.log('something went wrong ' + err)
@@ -501,7 +503,7 @@ export class PlayingField extends GameObject {
 
         this.waiting = !(this.match.attacker == this.activePlayer);
 
-        this.firebase.updateMatch('0000', this.match).then(res => {
+        this.firebase.updateMatch(this.matchID, this.match).then(res => {
             console.log('match updated')
         }).catch(err => {
             console.log('something went wrong ' + err)
@@ -593,7 +595,7 @@ export class PlayingField extends GameObject {
 
             const gridPos = this.getHighlightedGridPosition()
             const placeable = this.checkShipPlacement(gridPos[0], gridPos[1],
-                this.setShipHorizontal, this.shipSize, this.getOwnPlayingField());
+                this.setShipHorizontal, this.shipSize, this.setupField);
 
             for (let i = 0; i < this.shipSize; i++) {
                 (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = true;
@@ -626,7 +628,7 @@ export class PlayingField extends GameObject {
                     if (this.match.hit(this.match.attacker, highlightPos[1], highlightPos[0]) == "No Target!")
                         this.doneHitting = true;
 
-                    this.firebase.updateMatch('0000', this.match).then(res => {
+                    this.firebase.updateMatch(this.matchID, this.match).then(res => {
                         console.log('match updated')
                     }).catch(err => {
                         console.log('something went wrong ' + err)

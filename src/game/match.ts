@@ -69,17 +69,22 @@ export class Match {
 
     checkState(): GameState {
         let result_1 = this.checkField(this.fieldPlayer1);
+        console.log(result_1);
         let result_2 = this.checkField(this.fieldPlayer2);
+
+        this.winner = null;
 
         if (result_1 == GameState.GameOver) {
             this.winner = Players.Player2;
             this.player2.winCounter++;
+            return GameState.GameOver;
         } else if (result_2 == GameState.GameOver) {
             this.winner = Players.Player1;
             this.player1.winCounter++;
+            return GameState.GameOver;
         }
 
-        return this.winner ? GameState.GameOver : GameState.Running;
+        return GameState.Running;
     }
 
     checkField(field: Field[][]) {
@@ -88,11 +93,28 @@ export class Match {
                 const hasShip: boolean = field[y][x].hasShip;
                 const isHit: boolean = field[y][x].isHit;
                 if (hasShip && !isHit) {
+                    console.log("Found ship at " + y + "," + x);
                     return GameState.Running;
                 }
             }
         }
+        console.log("GameOver");
         return GameState.GameOver;
+    }
+
+    hasEmptyField() {
+        return this.fieldEmpty(this.fieldPlayer1) || this.fieldEmpty(this.fieldPlayer2);
+    }
+
+    fieldEmpty(field: Field[][]) {
+        for (let y: number = 0; y < field.length; y++) {
+            for (let x: number = 0; x < field.length; x++) {
+                if (field[y][x].hasShip) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     printField(field: Field[][]) {

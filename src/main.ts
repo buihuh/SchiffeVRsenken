@@ -162,7 +162,7 @@ function hostGameStart(playingField: GAME.PlayingField) {
     if(centerText){
         centerText.mesh.rotation.set(0, 0, 0);
     }
-    playingField.startMatch('0000');
+    playingField.startMatch('6666');
     rightText.setCallback(null);
     leftText.setCallback(null);
     (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
@@ -175,7 +175,7 @@ function guestGameStart(playingField: GAME.PlayingField) {
     if(centerText){
         centerText.mesh.rotation.set(0, 0, 0);
     }
-    playingField.startMatch('0000', false);
+    playingField.startMatch('6666', false);
     rightText.setCallback(null);
     leftText.setCallback(null);
     (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
@@ -441,29 +441,38 @@ renderer.setAnimationLoop(function () {
     if (playingField.gameStarted) {
         playingField.update();
 
-        if (playingField.gamePhase == "running") {
-            if (playingField.match.attacker != whosTurn) {
-                whosTurn = playingField.match.attacker;
-                (leftText.mesh.material as THREE.MeshPhongMaterial).visible = true;
-                leftText.setText("Player " + (whosTurn + 1).toString() + "'s turn");
-            }
-        }
+        if (playingField.finished) {
+            (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            let endText = playingField.winner == playingField.activePlayer ? "YOU WIN!" : "YOU LOSE!";
+            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+            centerText.setText(endText);
+        } else {
 
-        if (playingField.waiting) {
-            if (centerText.text != "WAITING") {
-                centerText.setText("WAITING");
+            if (playingField.gamePhase == "running") {
+                if (playingField.match.attacker != whosTurn) {
+                    whosTurn = playingField.match.attacker;
+                    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                    leftText.setText("Player " + (whosTurn + 1).toString() + "'s turn");
+                }
+            }
+
+            if (playingField.waiting) {
+                if (centerText.text != "WAITING") {
+                    centerText.setText("WAITING");
+                    (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                }
+            } else if (playingField.gamePhase != "setup" && !playingField.doneHitting) {
+                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            }
+
+            if (playingField.doneHitting && !centerText.callbackFunction) {
+                centerText.setCallback(function () {
+                    nextTurn(playingField)
+                });
+                centerText.setText("CONFIRM");
                 (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
             }
-        } else if (playingField.gamePhase != "setup" && !playingField.doneHitting) {
-            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = false;
-        }
-
-        if (playingField.doneHitting && !centerText.callbackFunction) {
-            centerText.setCallback(function () {
-                nextTurn(playingField)
-            });
-            centerText.setText("CONFIRM");
-            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
         }
     }
 
