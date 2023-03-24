@@ -1,3 +1,5 @@
+// noinspection JSUnusedLocalSymbols
+
 import * as FB from "../firebase/firebase.js";
 import * as THREE from 'three';
 import {Player} from "./player.js";
@@ -100,13 +102,14 @@ export class PlayingField extends GameObject {
     private matchID: string;
 
     constructor(position: THREE.Vector3, scene: THREE.Scene, meshList: any[], objectList: any[]) {
-        super(new THREE.PlaneGeometry(10, 10), new THREE.MeshBasicMaterial({
+        super(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({
             side: THREE.DoubleSide, visible: false
         }), position, scene, meshList, objectList);
         this.mesh.rotateX(-Math.PI / 2);
 
-        this.grid = new THREE.GridHelper(10, 10);
+        this.grid = new THREE.GridHelper(10, 10,new THREE.Color( 0xffffff ),new THREE.Color( 0xffffff )  );
         this.grid.position.set(position.x, position.y, position.z);
+        // this.grid.material = new THREE.MeshStandardMaterial({roughness:1});
         this.scene.add(this.grid);
 
         this.highlightMesh = new THREE.Mesh(
@@ -144,9 +147,9 @@ export class PlayingField extends GameObject {
             for (let j = 0; j < 10; j++) {
                 let field = new THREE.Mesh(
                     new THREE.PlaneGeometry(1, 1),
-                    new THREE.MeshBasicMaterial({
+                    new THREE.MeshStandardMaterial({
                         side: THREE.DoubleSide,
-                        color: 0xFFFFFF,
+                        roughness: 0.1,
                         visible: true
                     })
                 );
@@ -176,7 +179,7 @@ export class PlayingField extends GameObject {
         const enemy = new THREE.Object3D();
         const gltfLoader = new GLTFLoader();
         const geometry = new THREE.SphereGeometry(0.12, 32, 16);
-        const material = new THREE.MeshLambertMaterial({color: new THREE.Color(255, 255, 255)});
+        const material = new THREE.MeshStandardMaterial({color: new THREE.Color(255, 255, 255)});
         const sphere = new THREE.Mesh(geometry, material);
         sphere.name = 'playerHead';
         enemy.add(sphere);
@@ -280,7 +283,7 @@ export class PlayingField extends GameObject {
         for (let i = 0; i < playingField.length; i++) {
             for (let j = 0; j < playingField[i].length; j++) {
                 const statusMesh = this.fieldStatusMeshes[j][i];
-                const material = statusMesh.material as THREE.MeshBasicMaterial;
+                const material = statusMesh.material as THREE.MeshStandardMaterial;
                 if (playingField[i][j].hasShip) {
                     if (playingField[i][j].isHit)
                         material.color.setHex(0xFF0000);
@@ -301,7 +304,7 @@ export class PlayingField extends GameObject {
         for (let i = 0; i < enemyPlayingField.length; i++) {
             for (let j = 0; j < enemyPlayingField[i].length; j++) {
                 const statusMesh = this.fieldStatusMeshes[j][i];
-                const material = statusMesh.material as THREE.MeshBasicMaterial;
+                const material = statusMesh.material as THREE.MeshStandardMaterial;
                 if (!enemyPlayingField[i][j].isHit) {
                     material.color.setHex(0xFFFFFF);
                     continue;
@@ -349,7 +352,7 @@ export class PlayingField extends GameObject {
             this.gamePhase = "running";
             this.highlightMesh.visible = true;
             for (let i = 1; i < this.setShipMeshes.length; i++) {
-                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
+                (this.setShipMeshes[i].material as THREE.MeshStandardMaterial).visible = false;
             }
             (this.highlightMesh.material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
         }
@@ -478,7 +481,7 @@ export class PlayingField extends GameObject {
             this.shipSize = 0;
             this.highlightMesh.visible = false; // temporary disable visibility
             for (let i = 1; i < this.setShipMeshes.length; i++) {
-                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = false;
+                (this.setShipMeshes[i].material as THREE.MeshStandardMaterial).visible = false;
             }
             switch (this.activePlayer) {
                 case Players.Player1:
@@ -562,13 +565,13 @@ export class PlayingField extends GameObject {
 
     onFocus() {
         super.onFocus();
-        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        const highlightMaterial = this.highlightMesh.material as THREE.MeshStandardMaterial;
         highlightMaterial.visible = true;
     }
 
     onUnfocus() {
         super.onUnfocus();
-        const highlightMaterial = this.highlightMesh.material as THREE.MeshBasicMaterial;
+        const highlightMaterial = this.highlightMesh.material as THREE.MeshStandardMaterial;
         highlightMaterial.visible = false;
     }
 
@@ -598,7 +601,7 @@ export class PlayingField extends GameObject {
                 this.setShipHorizontal, this.shipSize, this.setupField);
 
             for (let i = 0; i < this.shipSize; i++) {
-                (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).visible = true;
+                (this.setShipMeshes[i].material as THREE.MeshStandardMaterial).visible = true;
 
                 if (this.setShipHorizontal) {
                     this.setShipMeshes[i].position.set(highlightPos.x + i, 0, highlightPos.z);
@@ -607,9 +610,9 @@ export class PlayingField extends GameObject {
                 }
 
                 if (placeable) {
-                    (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).color.setHex(0xFFEA00);
+                    (this.setShipMeshes[i].material as THREE.MeshStandardMaterial).color.setHex(0xFFEA00);
                 } else {
-                    (this.setShipMeshes[i].material as THREE.MeshBasicMaterial).color.setHex(0xFF0000);
+                    (this.setShipMeshes[i].material as THREE.MeshStandardMaterial).color.setHex(0xFF0000);
                 }
             }
         }

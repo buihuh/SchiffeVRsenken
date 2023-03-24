@@ -29,10 +29,8 @@ export class Text3D extends GameObject {
             bevelSize: 0.02,
             bevelOffset: 0,
             bevelSegments: 5
-        }), new THREE.MeshPhongMaterial({
-            color: new THREE.Color(255, 255, 255),
-            specular: new THREE.Color(255, 255, 255)
-        }), position, scene, meshList, objectList, rotation);
+        }), new THREE.MeshStandardMaterial( { roughness: 0 } )
+            , position, scene, meshList, objectList, rotation);
         this.size = size;
         this.text = text;
         this.font = font;
@@ -41,36 +39,31 @@ export class Text3D extends GameObject {
         this.callbackFunction = callbackFunction;
 
         // Bug workaround
-        (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
-        (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
+        (this.mesh.material as THREE.MeshStandardMaterial).color.setHex(this.standardColor);
     }
 
     onSelectStart() {
         if (this.callbackFunction) {
-            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.selectColor);
-            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.selectColor);
+            (this.mesh.material as THREE.MeshStandardMaterial).color.setHex(this.selectColor);
         }
     }
 
     onSelectEnd() {
         if (this.callbackFunction) {
-            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
-            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
+            (this.mesh.material as THREE.MeshStandardMaterial).color.setHex(this.standardColor);
             this.callbackFunction();
         }
     }
 
     onFocus() {
         if (this.callbackFunction) {
-            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.focusColor);
-            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.focusColor);
+            (this.mesh.material as THREE.MeshStandardMaterial).color.setHex(this.focusColor);
         }
     }
 
     onUnfocus() {
         if (this.callbackFunction) {
-            (this.mesh.material as THREE.MeshPhongMaterial).color.setHex(this.standardColor);
-            (this.mesh.material as THREE.MeshPhongMaterial).specular.setHex(this.standardColor);
+            (this.mesh.material as THREE.MeshStandardMaterial).color.setHex(this.standardColor);
         }
     }
 

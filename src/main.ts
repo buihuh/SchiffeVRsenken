@@ -26,6 +26,8 @@ let player = new THREE.Group();
 player.add(camera);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -52,85 +54,99 @@ let rotateCenterText = false;
 /**
  * END Options
  */
-let water = buildWater();
 
-let sun = new THREE.Vector3();
+/**
+ * Water
+ */
 
-let sky = buildSky();
-function SceneManager(canvas) {
-    // Magic goes here
-}
+let water;
 
-function buildSky() {
-    // Can be viewed here
-    const sky = new Sky();
-    sky.scale.setScalar(10000); // Specify the dimensions of the skybox
-    scene.add(sky); // Add the sky to our scene
-
-    // Set up variables to control the look of the sky
-    const skyUniforms = sky.material.uniforms;
-    skyUniforms['turbidity'].value = 10;
-    skyUniforms['rayleigh'].value = 2;
-    skyUniforms['mieCoefficient'].value = 0.005;
-    skyUniforms['mieDirectionalG'].value = 0.8;
-    const parameters = {
-        elevation: 3,
-        azimuth: 115
-    };
-    const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
-    const theta = THREE.MathUtils.degToRad(parameters.azimuth);
-    sun.setFromSphericalCoords(1, phi, theta);
-    sky.material.uniforms['sunPosition'].value.copy(sun);
-    (water.material as THREE.ShaderMaterial).uniforms['sunDirection'].value.copy(sun).normalize();
-    scene.environment = pmremGenerator.fromScene(sky as any).texture;
-    // (water.material as THREE.ShaderMaterial).uniforms['speed'].value = 0.0;
-}
-
-function buildWater() {
+function initWater() {
     const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
-    const water = new Water(
+
+    water = new Water(
         waterGeometry,
         {
             textureWidth: 512,
             textureHeight: 512,
-            waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function ( texture ) {
+            waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function (texture) {
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
             }),
-            alpha: 1,
             sunDirection: new THREE.Vector3(),
             sunColor: 0xffffff,
-            waterColor: 0x1e0014,
+            waterColor: 0x001e0f,
             distortionScale: 3.7,
             fog: scene.fog !== undefined
         }
     );
-    water.rotation.x =- Math.PI / 2;
-    water.position.set(0,-1,0)
-    scene.add(water);
-
-    const waterUniforms = water.material.uniforms;
-    return water;
+    water.position.setY(-1);
+    water.rotation.x = -Math.PI / 2;
 }
+
+initWater();
+scene.add( water );
+
+
+/**
+ * Sky
+ */
+
+let sun = new THREE.Vector3();
+
+function initSky() {
+
+    let sky = new Sky();
+    sky.scale.setScalar( 10000 );
+    scene.add( sky );
+
+    const skyUniforms = sky.material.uniforms;
+
+    skyUniforms[ 'turbidity' ].value = 10;
+    skyUniforms[ 'rayleigh' ].value = 2;
+    skyUniforms[ 'mieCoefficient' ].value = 0.005;
+    skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+    const parameters = {
+        elevation: 2.5,
+        azimuth: 180
+    };
+
+    const pmremGenerator = new THREE.PMREMGenerator( renderer );
+    let renderTarget;
+
+    function updateSun() {
+        const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
+        const theta = THREE.MathUtils.degToRad(parameters.azimuth);
+        sun.setFromSphericalCoords(1, phi, theta);
+        sky.material.uniforms['sunPosition'].value.copy(sun);
+        water.material.uniforms['sunDirection'].value.copy(sun).normalize();
+        if (renderTarget !== undefined) renderTarget.dispose();
+        renderTarget = pmremGenerator.fromScene(sky as any);
+        scene.environment = renderTarget.texture;
+    }
+    updateSun();
+}
+
+initSky();
 
 /**
  * START LIGHTING & BACKGROUND
  */
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(1, 4, 1).normalize();
-scene.add(dirLight);
-
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.distance = 20
-pointLight.intensity = 1
-pointLight.power = 12
-pointLight.color.setHex(0xffffff)
-pointLight.position.set(0, 2, 6);
-scene.add(pointLight);
-
-const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.1 );
-scene.add( ambientLight );
+// const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+// dirLight.position.set(1, 4, 1).normalize();
+// scene.add(dirLight);
+//
+// const pointLight = new THREE.PointLight(0xffffff);
+// pointLight.distance = 20
+// pointLight.intensity = 1
+// pointLight.power = 12
+// pointLight.color.setHex(0xffffff)
+// pointLight.position.set(0, 2, 6);
+// scene.add(pointLight);
+//
+// const ambientLight = new THREE.AmbientLight( 0xeb349b, .05 );
+// scene.add( ambientLight );
 
 /**
  * END LIGHTING & BACKGROUND
@@ -146,8 +162,7 @@ addTable()
 
 function addTable() {
     const geometry = new THREE.BoxGeometry(11, 0.7, 11);
-    const material = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0x766565});
-    material.shininess = 1;
+    const material = new THREE.MeshStandardMaterial( { roughness: 0 } );
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(0, -0.351, 0);
     scene.add(cube);
@@ -165,8 +180,8 @@ function hostGameStart(playingField: GAME.PlayingField) {
     playingField.startMatch('6666');
     rightText.setCallback(null);
     leftText.setCallback(null);
-    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
-    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (rightText.mesh.material as THREE.MeshStandardMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshStandardMaterial).visible = false;
     centerText.setText("PLACE SHIPS");
 }
 
@@ -178,8 +193,8 @@ function guestGameStart(playingField: GAME.PlayingField) {
     playingField.startMatch('6666', false);
     rightText.setCallback(null);
     leftText.setCallback(null);
-    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
-    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (rightText.mesh.material as THREE.MeshStandardMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshStandardMaterial).visible = false;
     centerText.setText("PLACE SHIPS");
 }
 
@@ -442,17 +457,17 @@ renderer.setAnimationLoop(function () {
         playingField.update();
 
         if (playingField.finished) {
-            (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
-            (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            (leftText.mesh.material as THREE.MeshStandardMaterial).visible = false;
+            (rightText.mesh.material as THREE.MeshStandardMaterial).visible = false;
             let endText = playingField.winner == playingField.activePlayer ? "YOU WIN!" : "YOU LOSE!";
-            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+            (centerText.mesh.material as THREE.MeshStandardMaterial).visible = true;
             centerText.setText(endText);
         } else {
 
             if (playingField.gamePhase == "running") {
                 if (playingField.match.attacker != whosTurn) {
                     whosTurn = playingField.match.attacker;
-                    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                    (leftText.mesh.material as THREE.MeshStandardMaterial).visible = true;
                     leftText.setText("Player " + (whosTurn + 1).toString() + "'s turn");
                 }
             }
@@ -460,10 +475,10 @@ renderer.setAnimationLoop(function () {
             if (playingField.waiting) {
                 if (centerText.text != "WAITING") {
                     centerText.setText("WAITING");
-                    (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                    (centerText.mesh.material as THREE.MeshStandardMaterial).visible = true;
                 }
             } else if (playingField.gamePhase != "setup" && !playingField.doneHitting) {
-                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+                (centerText.mesh.material as THREE.MeshStandardMaterial).visible = false;
             }
 
             if (playingField.doneHitting && !centerText.callbackFunction) {
@@ -471,7 +486,7 @@ renderer.setAnimationLoop(function () {
                     nextTurn(playingField)
                 });
                 centerText.setText("CONFIRM");
-                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                (centerText.mesh.material as THREE.MeshStandardMaterial).visible = true;
             }
         }
     }
