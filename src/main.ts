@@ -4,10 +4,17 @@ import * as THREE from 'three';
 import * as GAME from "./game/gameobjects.js";
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
-import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 import {Text3D} from './game/text3D.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
+import {Water} from 'three/examples/jsm/objects/Water.js';
+import {Sky} from 'three/examples/jsm/objects/Sky.js';
 
+
+THREE.Cache.enabled = true;
+
+const gameTitleText = "SchiffeVRsenken".toUpperCase();
+const createGameText = "Create Game".toUpperCase();
+const joinGameText = "Join Game".toUpperCase();
 
 const scene = new THREE.Scene();
 const meshesInScene = [];
@@ -19,7 +26,6 @@ let player = new THREE.Group();
 player.add(camera);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setClearColor("#0055ff");
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -34,67 +40,184 @@ let vrControllers = null;
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
-
     camera.updateProjectionMatrix();
 });
 
-const light = new THREE.PointLight(0xFFFFFF, 1, 500);
-light.position.set(10, 10, 10);
-
-scene.add(light);
-
-//<editor-fold desc="GameObjects">
-//--------------------------------
-//  GameObjects
-//--------------------------------
-
-const hostTrigger = new GAME.HostTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0xFF3232}),
-    new THREE.Vector3(2, 2, -3), scene, meshesInScene, gameObjects);
-
-const guestTrigger = new GAME.GuestTrigger(new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({color: 0x3232FF}),
-    new THREE.Vector3(-2, 2, -3), scene, meshesInScene, gameObjects);
-
-
-//</editor-fold>
-
 /**
- * TODO: start Title
+ * START Options
  */
 
-loadTitle();
+let rotateCenterText = false;
 
-function loadTitle() {
+/**
+ * END Options
+ */
+let water = buildWater();
+
+let sun = new THREE.Vector3();
+
+let sky = buildSky();
+function SceneManager(canvas) {
+    // Magic goes here
+}
+
+function buildSky() {
+    // Can be viewed here
+    const sky = new Sky();
+    sky.scale.setScalar(10000); // Specify the dimensions of the skybox
+    scene.add(sky); // Add the sky to our scene
+
+    // Set up variables to control the look of the sky
+    const skyUniforms = sky.material.uniforms;
+    skyUniforms['turbidity'].value = 10;
+    skyUniforms['rayleigh'].value = 2;
+    skyUniforms['mieCoefficient'].value = 0.005;
+    skyUniforms['mieDirectionalG'].value = 0.8;
+    const parameters = {
+        elevation: 3,
+        azimuth: 115
+    };
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
+    const theta = THREE.MathUtils.degToRad(parameters.azimuth);
+    sun.setFromSphericalCoords(1, phi, theta);
+    sky.material.uniforms['sunPosition'].value.copy(sun);
+    (water.material as THREE.ShaderMaterial).uniforms['sunDirection'].value.copy(sun).normalize();
+    scene.environment = pmremGenerator.fromScene(sky as any).texture;
+    // (water.material as THREE.ShaderMaterial).uniforms['speed'].value = 0.0;
+}
+
+function buildWater() {
+    const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+    const water = new Water(
+        waterGeometry,
+        {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: new THREE.TextureLoader().load('resources/waternormals.jpg', function ( texture ) {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            }),
+            alpha: 1,
+            sunDirection: new THREE.Vector3(),
+            sunColor: 0xffffff,
+            waterColor: 0x1e0014,
+            distortionScale: 3.7,
+            fog: scene.fog !== undefined
+        }
+    );
+    water.rotation.x =- Math.PI / 2;
+    water.position.set(0,-1,0)
+    scene.add(water);
+
+    const waterUniforms = water.material.uniforms;
+    return water;
+}
+
+/**
+ * START LIGHTING & BACKGROUND
+ */
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(1, 4, 1).normalize();
+scene.add(dirLight);
+
+const pointLight = new THREE.PointLight(0xffffff);
+pointLight.distance = 20
+pointLight.intensity = 1
+pointLight.power = 12
+pointLight.color.setHex(0xffffff)
+pointLight.position.set(0, 2, 6);
+scene.add(pointLight);
+
+const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.1 );
+scene.add( ambientLight );
+
+/**
+ * END LIGHTING & BACKGROUND
+ */
+
+const playingField = new GAME.PlayingField(new THREE.Vector3(0, 0, 0), scene, meshesInScene, gameObjects);
+
+/**
+ * Start Table
+ */
+
+addTable()
+
+function addTable() {
+    const geometry = new THREE.BoxGeometry(11, 0.7, 11);
+    const material = new THREE.MeshPhongMaterial({color: 0xffffff, specular: 0x766565});
+    material.shininess = 1;
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, -0.351, 0);
+    scene.add(cube);
+}
+
+/**
+ * End Table
+ */
+
+function hostGameStart(playingField: GAME.PlayingField) {
+    rotateCenterText = false;
+    if(centerText){
+        centerText.mesh.rotation.set(0, 0, 0);
+    }
+    playingField.startMatch('6666');
+    rightText.setCallback(null);
+    leftText.setCallback(null);
+    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    centerText.setText("PLACE SHIPS");
+}
+
+function guestGameStart(playingField: GAME.PlayingField) {
+    rotateCenterText = false;
+    if(centerText){
+        centerText.mesh.rotation.set(0, 0, 0);
+    }
+    playingField.startMatch('6666', false);
+    rightText.setCallback(null);
+    leftText.setCallback(null);
+    (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+    centerText.setText("PLACE SHIPS");
+}
+
+function nextTurn(playingField: GAME.PlayingField) {
+    playingField.nextTurn();
+    centerText.setCallback(null);
+}
+
+/**
+ * Start Text Objects
+ */
+
+loadTextObjects();
+
+let centerText: Text3D;
+let leftText: Text3D;
+let rightText: Text3D;
+
+function loadTextObjects() {
     const loader = new FontLoader();
-    let text3D;
-    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        const geometry = new TextGeometry("SchiffeVRsenken", {
-            font: font,
-            size: 1,
-            height: 0.2,
-            curveSegments: 10,
-            bevelEnabled: true,
-            bevelThickness: 0.02,
-            bevelSize: 0.02,
-            bevelOffset: 0,
-            bevelSegments: 5
-        });
-        geometry.center();
-        geometry.computeBoundingBox();
-        const material = new THREE.MeshPhongMaterial({
-            color: '#dbe4eb', specular: '#dbe4eb'
-        });
-        // let  mesh = new THREE.Mesh(geometry, material);
-        // mesh.name = "title";
 
-        text3D = new Text3D(geometry, material, new THREE.Vector3(0, 4, -3), scene, meshesInScene, gameObjects);
-        text3D.font = font;
+    loader.load('./resources/helvetiker_bold.typeface.json', function (font) {
+        centerText = new Text3D(new THREE.Vector3(0, 3, 0), scene, meshesInScene, gameObjects, gameTitleText, font, 1, undefined, null);
+        let rotationLeft = new THREE.Vector3(0, Math.PI / 2, 0);
+        let rotationRight = new THREE.Vector3(0, -Math.PI / 2, 0);
+        leftText = new Text3D(new THREE.Vector3(-5, 1, 0), scene, meshesInScene, gameObjects, createGameText, font,
+            1, rotationLeft, function () {
+                hostGameStart(playingField)
+            });
+        rightText = new Text3D(new THREE.Vector3(5, 1, 0), scene, meshesInScene, gameObjects, joinGameText, font,
+            1, rotationRight, function () {
+                guestGameStart(playingField)
+            });
     });
 }
 
 /**
- * TODO: end Title
+ * End Text Objects
  */
 
 function getGameObjectFromMesh(mesh): GAME.GameObject {
@@ -113,20 +236,43 @@ function getGameObjectFromMesh(mesh): GAME.GameObject {
 
 const gltfLoader = new GLTFLoader();
 const url = './resources/models/boat.gltf';
-const boat = new THREE.Object3D();
+const boat1 = new THREE.Object3D();
+const boat2 = new THREE.Object3D();
+boat1.position.setX(12);
+boat1.position.setY(-0.90);
 
-// Load a glTF resource
+boat2.position.setX(-12);
+boat2.position.setY(-0.90);
+boat2.rotation.set(0,Math.PI,0)
+
+const boatSpinning = new THREE.Object3D();
+boatSpinning.add(boat1);
+boatSpinning.add(boat2);
+scene.add(boatSpinning)
+
 gltfLoader.load(
     url,
-    function ( gltf ) {
-        boat.add(gltf.scene);
-        scene.add(boat);
+    function (gltf) {
+        boat1.add(gltf.scene);
     },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
     },
-    function ( error ) {
-        console.log( 'An error happened' + error.message);
+    function (error) {
+        console.log('An error happened' + error.message);
+    }
+);
+
+gltfLoader.load(
+    url,
+    function (gltf) {
+        boat2.add(gltf.scene);
+    },
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (error) {
+        console.log('An error happened' + error.message);
     }
 );
 
@@ -231,9 +377,9 @@ function handleController(controller) {
         }
         selectedGameObject = foundGameObject;
         if (selectedGameObject) {
-            if (!interacting)
+            if (!interacting) {
                 selectedGameObject.onFocus();
-
+            }
             selectedGameObject.onIntersect(new THREE.Vector3().copy(intersects[0].point));
         }
     } else {
@@ -283,7 +429,7 @@ if (vrControllers[0]) {
     setActiveController(vrControllers[0]);
 }
 
-let framecount = 0;
+let whosTurn = null;
 //VR animation loop
 renderer.setAnimationLoop(function () {
     //Handle Controllers
@@ -292,36 +438,65 @@ renderer.setAnimationLoop(function () {
             handleController(controller);
         });
     }
+    if (playingField.gameStarted) {
+        playingField.update();
 
-    if (hostTrigger.playingField) {
-        hostTrigger.playingField.update();
-        // if(framecount % 10 == 0) {
-            hostTrigger.playingField.updatePlayerData(vrControllers, camera);
-        // }
-        if (guestTrigger)
-            (guestTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+        if (playingField.finished) {
+            (leftText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            (rightText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            let endText = playingField.winner == playingField.activePlayer ? "YOU WIN!" : "YOU LOSE!";
+            (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+            centerText.setText(endText);
+        } else {
+
+            if (playingField.gamePhase == "running") {
+                if (playingField.match.attacker != whosTurn) {
+                    whosTurn = playingField.match.attacker;
+                    (leftText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                    leftText.setText("Player " + (whosTurn + 1).toString() + "'s turn");
+                }
+            }
+
+            if (playingField.waiting) {
+                if (centerText.text != "WAITING") {
+                    centerText.setText("WAITING");
+                    (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+                }
+            } else if (playingField.gamePhase != "setup" && !playingField.doneHitting) {
+                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = false;
+            }
+
+            if (playingField.doneHitting && !centerText.callbackFunction) {
+                centerText.setCallback(function () {
+                    nextTurn(playingField)
+                });
+                centerText.setText("CONFIRM");
+                (centerText.mesh.material as THREE.MeshPhongMaterial).visible = true;
+            }
+        }
     }
 
-    if (guestTrigger.playingField) {
-        guestTrigger.playingField.update();
-        // if(framecount % 10 == 0) {
-            guestTrigger.playingField.updatePlayerData(vrControllers, camera);
-        // }
-        if (hostTrigger)
-            (hostTrigger.mesh.material as THREE.MeshLambertMaterial).visible = false;
+    if (rotateCenterText && centerText) {
+        centerText.mesh.rotation.y += 0.004;
     }
-
+    if (boat1 && boat2) {
+        boatSpinning.rotation.y -= 0.003;
+    }
+    water.material.uniforms['time'].value += 1.0 / 200.0;
     renderer.render(scene, camera);
-
-    framecount++;
 });
+
 //Browser animation loop
 const render = function () {
     requestAnimationFrame(render);
-
-    // mesh.rotation.y += 0.01;
-
+    if (rotateCenterText && centerText) {
+        centerText.mesh.rotation.y += 0.004;
+    }
+    if (boat1 && boat2) {
+        boatSpinning.rotation.y -= 0.003;
+    }
     renderer.render(scene, camera);
+    water.material.uniforms['time'].value += 1.0 / 200.0;
 };
 
 render();
